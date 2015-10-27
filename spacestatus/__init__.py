@@ -66,6 +66,29 @@ def temperature(bot, trigger):
     else:
         bot.say("Space status is unbekannt")
 
+
+@sopel.module.commands('users')
+def users(bot, trigger):
+    global space_status
+    if space_status is None:
+        bot.say("Space status is unbekannt")
+        return
+
+    if not space_status['known_users'] and (space_status['unknown_users'] == 0):
+        bot.say("Es ist keiner da")
+        return
+    if not space_status['known_users']:
+        bot.say("Es sind {} unbekannte im Space".format(space_status['unknown_users']))
+        return
+
+    msg = ', '.join(x['nick'] for x in space_status['known_users'])
+    if space_status['known_users'] > 0:
+        msg = msg + " und {} weitere".format(space_status['unknown_users'])
+
+    msg = msg + " sind im Space"
+    bot.say(msg)
+
+
 @sopel.module.commands('heizen','heatup')
 @sopel.module.require_chanmsg(message="Dieser Befehl muss im #flipdot channel eingegeben werden")
 @sopel.module.require_privilege(sopel.module.VOICE,"Du darfst das nicht")
