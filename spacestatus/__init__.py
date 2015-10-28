@@ -39,7 +39,7 @@ def update(bot, force=False):
         return
     if new_state['open'] != space_status['open']:
         for c in bot.config.core.channels:
-            bot.msg(c,"Space ist %s" % ("auf" if new_state['open'] else "zu"))
+            bot.msg(c,"Space ist {}".format("auf" if space_status['open'] else "zu"))
     space_status = new_state
 
 
@@ -48,7 +48,7 @@ def update(bot, force=False):
 def doorState(bot, trigger):
     global space_status
     if space_status is not None:
-        bot.say("Space ist %s" % ("auf" if space_status['open'] else "zu"))
+        bot.say("Space ist {}".format("auf" if space_status['open'] else "zu"))
     else:
         bot.say("Space status is unbekannt")
 
@@ -57,8 +57,9 @@ def temperature(bot, trigger):
     global space_status
     msg_setpoint = "Die Heizung ist {}".format(
         "aus" if space_status['temperature_setpoint'] < 6.0
-        else "auf %.2f°C eingestellt." % (space_status['temperature_setpoint']))
-    msg_temp = "Im Space ist es %.2f°C %s. " % (space_status['temperature_realvalue'],
+        else "auf {:.2f}°C eingestellt.".format(space_status['temperature_setpoint']))
+
+    msg_temp = "Im Space ist es {:.2f}°C {}. ".format(space_status['temperature_realvalue'],
                           "warm" if space_status['temperature_realvalue'] > 18.0 else "kalt")
     msg = msg_temp + msg_setpoint
     if space_status is not None:
@@ -99,9 +100,9 @@ def heat(bot, trigger):
         if space_status['temperature_setpoint'] > 15:
             bot.say("Die Heizung ist schon an")
             return
-        r = requests.get("http://hutschienenpi.fd:8080/CanBus/theemin/SetTargetTemp?temp={}".format(temp))
+        r = requests.get("http://hutschienenpi.fd:8080/CanBus/theemin/SetTargetTemp?temp={:d}".format(temp))
         if r.status_code == 200 and r.content.startswith("OK"):
-            bot.say("Stelle die Heizung auf %.2f°C" % (temp))
+            bot.say("Stelle die Heizung auf {:.2f}°C".format(temp))
             return
     except Exception as e:
         print(e.message)
