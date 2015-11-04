@@ -39,7 +39,7 @@ def update(bot, force=False):
         return
     if new_state['open'] != space_status['open']:
         for c in bot.config.core.channels:
-            bot.msg(c,"Space ist {}".format("auf" if space_status['open'] else "zu"))
+            bot.msg(c,"Jmd. hat den Space {}".format("geoeffnet" if new_state['open'] else "geschlossen"))
     space_status = new_state
 
 
