@@ -90,6 +90,29 @@ def users(bot, trigger):
     msg = msg + " sind im Space"
     bot.say(msg)
 
+@sopel.module.commands('status')
+def space_status_all(bot, trigger):
+    doorState(bot, trigger)
+    users(bot, trigger)
+    temperature(bot, trigger)
+
+@sopel.module.commands('alarm')
+def space_alarm(bot, trigger):
+    global space_status
+    if space_status is None:
+        bot.say("Space status is unbekannt")
+        return
+    known_users = space_status.get('known_users', {})
+    unknown_user = space_status.get('unknown_users',0)
+    if space_status['open'] is False and unknown_user is 0 and not known_users:
+        bot.say("Niemand zum benachrichtigen im Space")
+        return
+
+    r = requests.post("http://hutschienenpi.fd:8080/Hutschiene/RedLight", data={'blink': 'true'})
+    if r.status_code is 200:
+        bot.say("done")
+    else:
+        bot.say("Da ist ein Fehler aufgetreten")
 
 @sopel.module.commands('heizen','heatup')
 @sopel.module.require_chanmsg(message="Dieser Befehl muss im #flipdot channel eingegeben werden")
