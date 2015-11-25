@@ -5,10 +5,13 @@ from sopel.module import commands, interval
 from sopel import module
 import requests
 import json
+import sys
 
 INTERVAL = 60
+MOTION_DETECT_INTERVAL = 10
 space_status = None
 local_bot = None
+last_motion = None
 
 def setup(bot):
     global space_status
@@ -28,6 +31,14 @@ def update_space_status():
     except:
         return space_status
 
+@interval(MOTION_DETECT_INTERVAL)
+def motion_detect(bot, force=False):
+    global last_motion
+    fd = open("/sys/class/gpio/gpio1/value","r")
+    if fd.read()  == '0':
+        last_motion = time.strftime("%a %H:%M:%S")
+    fd.close()
+
 @interval(INTERVAL)
 def update(bot, force=False):
     global space_status
@@ -43,6 +54,14 @@ def update(bot, force=False):
     space_status = new_state
 
 
+@sopel.module.commands('bewegungsmelder')
+def motion(bot, force=False):
+    global last_motion
+    if last_motion is None:
+        bot.say("Es wurde noch keine Bewegung erkannt")
+    else:
+        bot.say("Zuletzt bewegte sich etwas im Space am {:s}".format(last_motion))
+        
 
 @sopel.module.commands('tuer','door')
 def doorState(bot, trigger):
