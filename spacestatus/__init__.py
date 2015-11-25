@@ -75,17 +75,17 @@ def users(bot, trigger):
         bot.say("Space status is unbekannt")
         return
     known_users = space_status.get('known_users', {})
-    unknown_user = space_status.get('unknown_users',0)
-    if not known_users and (unknown_user == 0):
+    unknown_users = space_status.get('unknown_users',0)
+    if not known_users and (unknown_users == 0):
         bot.say("Es ist niemand im Space")
         return
     if not known_users:
-        bot.say("Es sind {} unbekannte im Space".format(space_status['unknown_users']))
+        bot.say("Es sind {} unbekannte im Space".format(unknown_users))
         return
 
-    msg = ', '.join(x['nick'] for x in space_status['known_users'])
-    if space_status['known_users'] > 0:
-        msg = msg + " und {} weitere".format(space_status['unknown_users'])
+    msg = ', '.join(x['nick'] for x in known_users)
+    if known_users > 0:
+        msg = msg + " und {} weitere".format(unknown_users)
 
     msg = msg + " sind im Space"
     bot.say(msg)
