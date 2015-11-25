@@ -4,7 +4,9 @@ import sopel
 from sopel import module
 import requests
 import json
-from flask import Flask, request
+import hmac
+import hashlib
+from flask import Flask, request, abort
 from thread import start_new_thread
 
 app = Flask(__name__)
@@ -24,13 +26,32 @@ def shutdown(bot):
 
 @app.route('/webhook/',methods=['POST'])
 def webhook():
+    global local_bot
+
     event = request.headers.get('X-GitHub-Event')
     try:
+        if getattr(local_bot.config, "github", None):
+            secret = getattr(local_bot.config.github, "secret", None)
+            if secret:
+        
+	        hash = request.headers.get('X-Hub-Signature')
+                digest = hmac.new(secret, "", hashlib.sha1)
+
+                digest.update(request.data)
+                hash_calc = "sha1=" + digest.hexdigest()
+                if hash_calc != hash:
+                    print "expected hash {}; actual hash {}".format(hash_calc, hash)
+                    return "Failed", 403
+        
         data = json.loads(request.data)
         if event == 'push':
             handle_push_event(data)
         elif event == 'repository':
             handle_repository_event(data)
+	elif event == 'status':
+            pass
+        else:
+            handle_unimplemented_event(data, event)
     except Exception as e:
         print  e.message
         pass
@@ -52,6 +73,8 @@ def handle_push_event(data):
                                               "s" if (len(data['commits']) > 1) else "",
                                               url))
 
+def handle_unimplemented_event(data, event):
+    bot_say("unknown github event '{}'".format(event)) 
 
 def github_shortify(url):
     r = requests.post("http://git.io", data={'url':url })
@@ -63,3 +86,4 @@ def bot_say(msg):
     global local_bot
     for c in local_bot.config.core.channels:
         local_bot.msg(c,msg)
+
