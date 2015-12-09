@@ -59,11 +59,11 @@ def flipdot_log():
         for n in names:
             text = text.replace(n, "<font color=\"#%s\">%s</font>" % (get_color(n), n))
         # highlight urls in messages
-        #text = re.sub(r'\shttp\s', ' & ', text)
         text = re.sub(r'([a-z]+://[^ ]+/?)', '<font color="#14cc75"><u>\\1</u></font>', text)
-        print(text)
 
         ret += "%s <font color=\"#%s\">%s</font> %s<br>" % (date, color, name, text)
+	if name == "ERROR":
+		break
 
     ret += "<div id=\"end\"></div></body></html>"
     return ret 
@@ -88,5 +88,9 @@ def process_line(line):
         color = get_color(name)
         return (datestr, name, color, text)
     except Exception as e:
-         print e
+	#for i in dir(e):
+	#	print(i, getattr(e, i))
+	if "nothing to repeat" in e.message:
+		return("", "ERROR", "FF0000", "Wrong Python 2 version. Please update to at least version 2.7.9.")
+	return("", "ERROR", "FF0000", e.message)
 
