@@ -3,12 +3,14 @@ from __future__ import absolute_import
 import sopel
 from sopel.module import commands, interval
 from sopel import module
+import time
 import requests
 import json
+import os
 import sys
 
 INTERVAL = 60
-MOTION_DETECT_INTERVAL = 10
+MOTION_DETECT_INTERVAL = 3
 space_status = None
 local_bot = None
 last_motion = None
@@ -33,11 +35,14 @@ def update_space_status():
 
 @interval(MOTION_DETECT_INTERVAL)
 def motion_detect(bot, force=False):
+    global local_bot
     global last_motion
-    fd = open("/sys/class/gpio/gpio1/value","r")
-    if fd.read()  == '0':
-        last_motion = time.strftime("%a %H:%M:%S")
+    fd = open("/sys/class/gpio/gpio18/value","r")
+    tmp = fd.read(1)
     fd.close()
+    if tmp  == 0 or tmp == '0' or tmp == "0":
+        last_motion = time.strftime("%a %H:%M:%S")
+
 
 @interval(INTERVAL)
 def update(bot, force=False):
