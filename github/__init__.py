@@ -49,7 +49,9 @@ def webhook():
         elif event == 'repository':
             handle_repository_event(data)
         elif event == 'issues':
-            handle_issue_event()
+            handle_issue_event(data)
+        elif event == 'issue_comment':
+            handle_issue_comment_event(data)
 	elif event == 'status':
             pass
         else:
@@ -74,14 +76,22 @@ def handle_push_event(data):
                                               len(data['commits']),
                                               "s" if (len(data['commits']) > 1) else "",
                                               url))
+
+
 def handle_issue_event(data):
     url = github_shortify(data['issue']['html_url'])
-    bot_say("[{}] {} {} issue "{}": {}".format(data['repository']['name'],
-                                              data['issue']['user']['login'],
+    bot_say("[{}] {} {} issue \"{}\": {}".format(data['repository']['name'],
+                                              data['issue']['sender']['login'],
                                               data['action'],
                                               data['issue']['title'],
                                               url))
 
+def handle_issue_comment_event(data):
+    url = github_shortify(data['issue']['html_url'])
+    bot_say("[{}] {} commented issue \"{}\": {}".format(data['repository']['name'],
+                                                 data['issue']['sender']['login'],
+                                                 data['issue']['title'],
+                                                 url))
 
 
 def handle_unimplemented_event(data, event):
