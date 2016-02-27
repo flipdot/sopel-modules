@@ -76,8 +76,9 @@ def handle_push_event(data):
 def handle_unimplemented_event(data, event):
     bot_say("unknown github event '{}'".format(event)) 
 
+
 def github_shortify(url):
-    r = requests.post("http://git.io", data={'url':url })
+    r = requests.post("https://git.io", data={'url':url })
     if r.status_code == 201:
         return r.headers['location']
     return ""
