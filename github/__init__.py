@@ -48,6 +48,8 @@ def webhook():
             handle_push_event(data)
         elif event == 'repository':
             handle_repository_event(data)
+        elif event == 'issues':
+            handle_issue_event()
 	elif event == 'status':
             pass
         else:
@@ -72,6 +74,15 @@ def handle_push_event(data):
                                               len(data['commits']),
                                               "s" if (len(data['commits']) > 1) else "",
                                               url))
+def handle_issue_event(data):
+    url = github_shortify(data['issue']['html_url'])
+    bot_say("[{}] {} {} issue "{}": {}".format(data['repository']['name'],
+                                              data['issue']['user']['login'],
+                                              data['action'],
+                                              data['issue']['title'],
+                                              url))
+
+
 
 def handle_unimplemented_event(data, event):
     bot_say("unknown github event '{}'".format(event)) 
