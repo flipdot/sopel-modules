@@ -143,7 +143,13 @@ def space_alarm(bot, trigger):
 @sopel.module.require_privilege(sopel.module.VOICE,"Du darfst das nicht")
 def heat(bot, trigger):
     global space_status
-    temp = 20
+    if trigger.group(2) is not None:
+        temp = trigger.group(2)
+    else:
+        temp = 20
+    if temp != int(temp):
+        bot.say("Bitte eine gerade Zahl in Grad Celsius angeben")
+        return
     try:
         if space_status['temperature_setpoint'] > 15:
             bot.say("Die Heizung ist schon an")
