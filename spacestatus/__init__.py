@@ -143,10 +143,7 @@ def space_alarm(bot, trigger):
 @sopel.module.require_privilege(sopel.module.VOICE,"Du darfst das nicht")
 def heat(bot, trigger):
     global space_status
-    if trigger.group(2) is not None:
-        temp = trigger.group(2)
-    else:
-        temp = 20
+    temp = trigger.group(2) or 20
     if temp != int(temp):
         bot.say("Bitte eine gerade Zahl in Grad Celsius angeben")
         return
