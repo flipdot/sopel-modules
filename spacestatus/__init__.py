@@ -144,7 +144,9 @@ def space_alarm(bot, trigger):
 def heat(bot, trigger):
     global space_status
     temp = trigger.group(2) or 20
-    if temp != int(temp):
+    try:
+        temp = int(temp)
+    except ValueError as e:
         bot.say("Bitte eine gerade Zahl in Grad Celsius angeben")
         return
     try:
