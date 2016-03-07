@@ -138,12 +138,16 @@ def space_alarm(bot, trigger):
     else:
         bot.say("Da ist ein Fehler aufgetreten")
 
-@sopel.module.commands('heizen','heatup')
+@sopel.module.commands('heizen','heatup', 'heizung')
 @sopel.module.require_chanmsg(message="Dieser Befehl muss im #flipdot channel eingegeben werden")
 @sopel.module.require_privilege(sopel.module.VOICE,"Du darfst das nicht")
 def heat(bot, trigger):
     global space_status
     temp = trigger.group(2) or 20
+    if temp == "ein":
+        temp = "20"
+    elif temp == "aus":
+        temp = "5"
     try:
         temp = int(temp)
     except ValueError as e:
