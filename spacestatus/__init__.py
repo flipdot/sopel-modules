@@ -150,7 +150,7 @@ def heat(bot, trigger):
         bot.say("Bitte eine gerade Zahl in Grad Celsius angeben")
         return
     try:
-        if space_status['temperature_setpoint'] > 15:
+        if space_status['temperature_setpoint'] is temp:
             bot.say("Die Heizung ist schon an")
             return
         r = requests.get("http://hutschienenpi.fd:8080/CanBus/theemin/SetTargetTemp?temp={:d}".format(temp))
