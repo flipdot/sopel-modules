@@ -148,16 +148,19 @@ def space_alarm(bot, trigger):
     if r.status_code is 200:
         bot.say("done")
 
-        with SocketIO('pi-display', 3000) as socketIO:
-            req = {
-                "appname": "HackerDSCore",
-                "typ": "display",
-                "msg": {
-                  "name": "switchApp",
-                  "data": "IRC"
+        try:
+            with SocketIO('pi-display', 3000, wait_for_connection=False) as socketIO:
+                req = {
+                    "appname": "HackerDSCore",
+                    "typ": "display",
+                    "msg": {
+                      "name": "switchApp",
+                      "data": "IRC"
+                    }
                 }
-            }
-            socketIO.emit('clientMessage', req)
+                socketIO.emit('clientMessage', req)
+        except:
+            pass
     else:
         bot.say("Da ist ein Fehler aufgetreten")
 
