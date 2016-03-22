@@ -3,6 +3,8 @@ from __future__ import absolute_import
 import sopel
 from sopel.module import commands, interval
 from sopel import module
+from socketIO_client import SocketIO
+
 import time
 import requests
 import json
@@ -21,7 +23,17 @@ def setup(bot):
     global app
     local_bot = bot
     space_status = update_space_status()
+with SocketIO('pi-display', 3000) as socketIO:
+    req = {
+        "appname": "HackerDSCore",
+        "typ": "display",
+        "msg": {
+          "name": "switchApp",
+          "data": "IRC"
+        }
+    }
 
+    socketIO.emit('clientMessage', req)
 def update_space_status():
     global space_status
     try:
@@ -66,7 +78,7 @@ def motion(bot, force=False):
         bot.say("Es wurde noch keine Bewegung erkannt")
     else:
         bot.say("Zuletzt bewegte sich etwas im Space am {:s}".format(last_motion))
-        
+
 
 @sopel.module.commands('tuer','door')
 def doorState(bot, trigger):
@@ -135,6 +147,17 @@ def space_alarm(bot, trigger):
     r = requests.post("http://hutschienenpi.fd:8080/Hutschiene/RedLight", data={'blink': 'true'})
     if r.status_code is 200:
         bot.say("done")
+
+        with SocketIO('pi-display', 3000) as socketIO:
+            req = {
+                "appname": "HackerDSCore",
+                "typ": "display",
+                "msg": {
+                  "name": "switchApp",
+                  "data": "IRC"
+                }
+            }
+            socketIO.emit('clientMessage', req)
     else:
         bot.say("Da ist ein Fehler aufgetreten")
 
@@ -166,4 +189,3 @@ def heat(bot, trigger):
         pass
 
     bot.say("Da ist ein Fehler aufgetreten")
-
