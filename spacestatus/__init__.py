@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import sopel
 from sopel.module import commands, interval
 from sopel import module
-from socketIO_client import SocketIO
+#from socketIO_client import SocketIO
 
 import time
 import requests
@@ -23,17 +23,17 @@ def setup(bot):
     global app
     local_bot = bot
     space_status = update_space_status()
-with SocketIO('pi-display', 3000) as socketIO:
-    req = {
-        "appname": "HackerDSCore",
-        "typ": "display",
-        "msg": {
-          "name": "switchApp",
-          "data": "IRC"
-        }
-    }
-
-    socketIO.emit('clientMessage', req)
+#with SocketIO('pi-display', 3000) as socketIO:
+#    req = {
+#        "appname": "HackerDSCore",
+#        "typ": "display",
+#        "msg": {
+#          "name": "switchApp",
+#          "data": "IRC"
+#        }
+#    }
+#
+#    socketIO.emit('clientMessage', req)
 def update_space_status():
     global space_status
     try:
@@ -91,13 +91,25 @@ def doorState(bot, trigger):
 @sopel.module.commands('temp','temperatur')
 def temperature(bot, trigger):
     global space_status
-    msg_setpoint = "Die Heizung ist {}".format(
-        "aus" if space_status['temperature_setpoint'] < 6.0
-        else "auf {:.2f}°C eingestellt.".format(space_status['temperature_setpoint']))
+    state = space_status.get('temperature_setpoint')
+    if state is None:
+        state = "nicht erreichbar"
+        no_temp = True
+    elif state < 6.0:
+        state = "aus"
+    else:
+        state = "an"
+#    msg_setpoint = "Die Heizung ist {}".format(
+#        "aus" if (space_status.get('temperature_setpoint') or 0) < 6.0
+#        else "auf {:.2f}°C eingestellt.".format(space_status['temperature_setpoint']))
 
-    msg_temp = "Im Space ist es {:.2f}°C {}. ".format(space_status['temperature_realvalue'],
-                          "warm" if space_status['temperature_realvalue'] > 18.0 else "kalt")
-    msg = msg_temp + msg_setpoint
+    msg_setpoint = "Die Heizung ist {}".format(state)
+    if no_temp:
+        msg = msg_setpoint
+    else:
+        msg_temp = "Im Space ist es {:.2f}°C {}. ".format(space_status['temperature_realvalue'],
+                   "warm" if space_status['temperature_realvalue'] > 18.0 else "kalt")
+        msg = msg_temp + msg_setpoint
     if space_status is not None:
         bot.say(msg)
     else:
@@ -120,7 +132,7 @@ def users(bot, trigger):
         return
 
     msg = ', '.join(x['nick'] for x in known_users)
-    if known_users > 0:
+    if len(known_users) > 0:
         msg = msg + " und {} weitere".format(unknown_users)
 
     msg = msg + " sind im Space"
@@ -148,19 +160,19 @@ def space_alarm(bot, trigger):
     if r.status_code is 200:
         bot.say("done")
 
-        try:
-            with SocketIO('pi-display', 3000, wait_for_connection=False) as socketIO:
-                req = {
-                    "appname": "HackerDSCore",
-                    "typ": "display",
-                    "msg": {
-                      "name": "switchApp",
-                      "data": "IRC"
-                    }
-                }
-                socketIO.emit('clientMessage', req)
-        except:
-            pass
+#        try:
+#            with SocketIO('pi-display', 3000, wait_for_connection=False) as socketIO:
+#                req = {
+#                    "appname": "HackerDSCore",
+#                    "typ": "display",
+#                    "msg": {
+#                      "name": "switchApp",
+#                      "data": "IRC"
+#                    }
+#                }
+#                socketIO.emit('clientMessage', req)
+#        except:
+#            pass
     else:
         bot.say("Da ist ein Fehler aufgetreten")
 
