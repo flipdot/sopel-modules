@@ -3,8 +3,8 @@
 # flask module
 import sopel
 from sopel import module
-from flask import Flask, request, abort
-from thread import start_new_thread
+from flask import Flask, abort
+import threading
 
 # display
 import colorsys
@@ -21,7 +21,12 @@ def setup(bot):
     global local_bot
     global app
     local_bot = bot
-    start_new_thread(app.run,(),{'port': 9999})
+    #start_new_thread(app.run,(),{'port': 9999})
+    threading.Thread(target=app.run,
+        args=(),
+        kwargs={'port': 9999},
+    ).start()
+
 
 def shutdown(bot):
     func = request.environ.get('werkzeug.server.shutdown')
@@ -30,6 +35,9 @@ def shutdown(bot):
 
 @app.route('/', methods=['GET'])
 def flipdot_log():
+
+    with app.test_request_context():
+        from flask import request
     css = "::-webkit-scrollbar,::-webkit-scrollbar-button,::-webkit-scrollbar-track,::-webkit-scrollbar-track-piece,::-webkit-scrollbar-thumb,::-webkit-scrollbar-corner,::-webkit-resizer{ background-color:red; };}"
     ret = "<html><head><meta http-equiv=\"refresh\" content='10; URL=/#end'> </head><body onLoad='setTimeout(function() { window.scrollTo(0, document.body.scrollHeight || document.documentElement.scrollHeight) }, 1);' style='font-family:monospace; background: black; color: white; font-size:70px; "+css+"'>"
 
@@ -62,8 +70,8 @@ def flipdot_log():
         text = re.sub(r'([a-z]+://[^ ]+/?)', '<font color="#14cc75"><u>\\1</u></font>', text)
 
         ret += "%s <font color=\"#%s\">%s</font> %s<br>" % (date, color, name, text)
-	if name == "ERROR":
-		break
+        if name == "ERROR":
+            break
 
     ret += "<div id=\"end\"></div></body></html>"
     return ret 
@@ -90,7 +98,7 @@ def process_line(line):
     except Exception as e:
 	#for i in dir(e):
 	#	print(i, getattr(e, i))
-	if "nothing to repeat" in e.message:
-		return("", "ERROR", "FF0000", "Wrong Python 2 version. Please update to at least version 2.7.9.")
-	return("", "ERROR", "FF0000", e.message)
+        if "nothing to repeat" in e.message:
+            return("", "ERROR", "FF0000", "Wrong Python 2 version. Please update to at least version 2.7.9.")
+        return("", "ERROR", "FF0000", e.message)
 
