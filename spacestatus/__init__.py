@@ -23,9 +23,12 @@ def setup(bot):
     global app
     local_bot = bot
     space_status = update_space_status()
-    with open("/sys/class/gpio/export","r+") as f:
-        f.write("18")
-        f.flush()
+    try:
+        with open("/sys/class/gpio/export","r+") as f:
+            f.write("18")
+            f.flush()
+    except:
+        pass
 
 def update_space_status():
     global space_status
