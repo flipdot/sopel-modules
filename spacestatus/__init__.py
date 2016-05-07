@@ -23,17 +23,10 @@ def setup(bot):
     global app
     local_bot = bot
     space_status = update_space_status()
-#with SocketIO('pi-display', 3000) as socketIO:
-#    req = {
-#        "appname": "HackerDSCore",
-#        "typ": "display",
-#        "msg": {
-#          "name": "switchApp",
-#          "data": "IRC"
-#        }
-#    }
-#
-#    socketIO.emit('clientMessage', req)
+    with open("/sys/class/gpio/export","r+") as f:
+        f.write("18")
+        f.flush()
+
 def update_space_status():
     global space_status
     try:
@@ -99,9 +92,6 @@ def temperature(bot, trigger):
         state = "aus"
     else:
         state = "an"
-#    msg_setpoint = "Die Heizung ist {}".format(
-#        "aus" if (space_status.get('temperature_setpoint') or 0) < 6.0
-#        else "auf {:.2f}°C eingestellt.".format(space_status['temperature_setpoint']))
 
     msg_setpoint = "Die Heizung ist {}".format(state)
     if no_temp:
@@ -159,20 +149,6 @@ def space_alarm(bot, trigger):
     r = requests.post("http://hutschienenpi.fd:8080/Hutschiene/RedLight", data={'blink': 'true'})
     if r.status_code is 200:
         bot.say("done")
-
-#        try:
-#            with SocketIO('pi-display', 3000, wait_for_connection=False) as socketIO:
-#                req = {
-#                    "appname": "HackerDSCore",
-#                    "typ": "display",
-#                    "msg": {
-#                      "name": "switchApp",
-#                      "data": "IRC"
-#                    }
-#                }
-#                socketIO.emit('clientMessage', req)
-#        except:
-#            pass
     else:
         bot.say("Da ist ein Fehler aufgetreten")
 
