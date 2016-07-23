@@ -87,6 +87,7 @@ def doorState(bot, trigger):
 @sopel.module.commands('temp','temperatur')
 def temperature(bot, trigger):
     global space_status
+    no_temp = False
     state = space_status.get('temperature_setpoint')
     if state is None:
         state = "nicht erreichbar"
