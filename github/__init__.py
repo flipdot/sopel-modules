@@ -18,7 +18,6 @@ def setup(bot):
     global local_bot
     global app
     local_bot = bot
-    #start_new_thread(app.run,(),{'port': 3333})
     threading.Thread(target=app.run,
                      args=(),
                      kwargs={'port': 3333},
@@ -31,7 +30,7 @@ def shutdown(bot):
         func()
 
 
-#@app.route('/webhook/',methods=['POST'])
+@app.route('/webhook/',methods=['POST'])
 def webhook():
     global local_bot
   
@@ -52,7 +51,7 @@ def webhook():
                     print("expected hash {}; actual hash {}".format(hash_calc, hash))
                     return "Failed", 403
 
-        data = json.loads(request.data)
+        data = request.get_json()
         if event == 'push':
             handle_push_event(data)
         elif event == 'repository':
@@ -66,7 +65,8 @@ def webhook():
         else:
             handle_unimplemented_event(data, event)
     except Exception as e:
-        print(e.message)
+        print("exception")
+        str(e)
         pass
     return "OK"
 
