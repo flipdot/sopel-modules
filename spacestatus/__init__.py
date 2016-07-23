@@ -150,7 +150,7 @@ def space_alarm(bot, trigger):
         bot.say("Niemand zum benachrichtigen im Space")
         return
 
-    r = requests.post("http://hutschienenpi.fd:8080/Hutschiene/RedLight", data={'blink': 'true'})
+    r = requests.post("http://rail.fd:8080/Hutschiene/RedLight", data={'blink': 'true'})
     if r.status_code is 200:
         bot.say("done")
     else:
@@ -175,12 +175,12 @@ def heat(bot, trigger):
         if space_status['temperature_setpoint'] is temp:
             bot.say("Die Heizung ist schon an")
             return
-        r = requests.get("http://hutschienenpi.fd:8080/CanBus/theemin/SetTargetTemp?temp={:d}".format(temp))
-        if r.status_code == 200 and r.content.startswith("OK"):
+        r = requests.get("http://rail.fd:8080/CanBus/theemin/SetTargetTemp?temp={:d}".format(temp))
+        if r.status_code == 200 and r.text.startswith("OK"):
             bot.say("Stelle die Heizung auf {:.2f}°C".format(temp))
             return
     except Exception as e:
-        print(e.message)
+        print(e)
         pass
 
     bot.say("Da ist ein Fehler aufgetreten")
