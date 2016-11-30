@@ -85,12 +85,16 @@ def doorState(bot, trigger):
         bot.say("Space status is unbekannt")
 
 @sopel.module.commands('temp','temperatur')
-def temperature(bot, trigger):
+def temp(bot, trigger):
+    temperature(bot, '', "lounge");
+    temperature(bot, 'workshop_', "kino");
+
+def temperature(bot, room, room_name):
     global space_status
     no_temp = False
-    state = space_status.get('temperature_setpoint')
+    state = space_status.get(room + 'temperature_setpoint')
     if state is None:
-        state = "nicht erreichbar"
+        state = "nicht erreichbar ({})".format(room_name)
         no_temp = True
     elif state < 6.0:
         state = "aus"
@@ -101,8 +105,8 @@ def temperature(bot, trigger):
     if no_temp:
         msg = msg_setpoint
     else:
-        msg_temp = "Im Space ist es {:.2f}°C {}. ".format(space_status['temperature_realvalue'],
-                   "warm" if space_status['temperature_realvalue'] > 18.0 else "kalt")
+        msg_temp = "{}: Es {:.2f}°C {}. ".format(room_name, space_status[room + 'temperature_realvalue'],
+                   "warm" if space_status[room + 'temperature_realvalue'] > 18.0 else "kalt")
         msg = msg_temp + msg_setpoint
     if space_status is not None:
         bot.say(msg)
@@ -136,7 +140,7 @@ def users(bot, trigger):
 def space_status_all(bot, trigger):
     doorState(bot, trigger)
     users(bot, trigger)
-    temperature(bot, trigger)
+    temp(bot, trigger)
 
 @sopel.module.commands('alarm')
 def space_alarm(bot, trigger):
@@ -161,7 +165,17 @@ def space_alarm(bot, trigger):
 @sopel.module.require_privilege(sopel.module.VOICE,"Du darfst das nicht")
 def heat(bot, trigger):
     global space_status
-    temp = trigger.group(2) or 20
+
+    can_names = {
+        "kino" : "nashira",
+        "chill" : "theemin"
+    }
+    cmd = trigger.group(2) or "20 all"
+    cmds = cmd.split(" ")
+    
+    temp = cmds[0] if len(cmds) > 0 else 20
+    room = cmds[1] if len(cmds) > 1 else "all"
+
     if temp == "ein":
         temp = "20"
     elif temp == "aus":
@@ -169,18 +183,25 @@ def heat(bot, trigger):
     try:
         temp = int(temp)
     except ValueError as e:
-        bot.say("Bitte eine gerade Zahl in Grad Celsius angeben")
+        bot.say("Bitte eine natürliche Zahl in Grad Celsius angeben")
         return
-    try:
-        if space_status['temperature_setpoint'] is temp:
-            bot.say("Die Heizung ist schon an")
-            return
-        r = requests.get("http://rail.fd:8080/CanBus/theemin/SetTargetTemp?temp={:d}".format(temp))
-        if r.status_code == 200 and r.text.startswith("OK"):
-            bot.say("Stelle die Heizung auf {:.2f}°C".format(temp))
-            return
-    except Exception as e:
-        print(e)
-        pass
 
-    bot.say("Da ist ein Fehler aufgetreten")
+    rooms = []
+    if room == "all":
+        for k,v in can_names.items():
+            rooms.append(k)
+    else:
+        can_name = can_names[room]
+        if not can_name:
+            bot.say("{} existiert nicht".format(room))
+            return
+        rooms.append(room)
+
+    for r in rooms:
+        try:
+            resp = requests.get("http://rail.fd:8080/CanBus/{:s}/SetTargetTemp?temp={:d}".format(can_names[r], temp))
+            if resp.status_code == 200 and resp.text.startswith("OK"):
+                bot.say("Stelle Heizung({:s}) auf {:.2f}°C".format(r, temp))
+        except Exception as e:
+            print(e)
+            bot.say("Da ist ein Fehler aufgetreten ({:s})".format(r))
