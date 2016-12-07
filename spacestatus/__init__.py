@@ -167,7 +167,7 @@ def heat(bot, trigger):
     global space_status
 
     can_names = {
-        "kino" : "nashira",
+        "kino" : "thaemin",
         "chill" : "theemin"
     }
     cmd = trigger.group(2) or "20 all"
