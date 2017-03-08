@@ -10,6 +10,8 @@ import requests
 import json
 import os
 import sys
+import sqlite3
+import datetime
 
 INTERVAL = 60
 MOTION_DETECT_INTERVAL = 3
@@ -150,6 +152,23 @@ def space_status_all(bot, trigger):
     doorState(bot, trigger)
     users(bot, trigger)
     temp(bot, trigger)
+
+
+@interval(60*60*24)
+def clear_status_counter(bot, force=False):
+    global local_bot
+    if not local_bot:
+        return
+
+    last = local_bot.db.get_channel_value("#flipdot", "status_cnt") or datetime.datetime.now().month
+    if datetime.datetime.now().month == last:
+        return
+
+    db = local_bot.db.connect()
+    db.execute('DELETE FROM nick_values WHERE nick_values.key = "status_cnt"')
+    db.commit()
+    db.close()
+    local_bot.db.set_channel_value("#flipdot", "status_cnt", datetime.datetime.now().month)
 
 
 @sopel.module.commands('alarm')
