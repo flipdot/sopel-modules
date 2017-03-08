@@ -105,20 +105,20 @@ def temperature(bot, room, room_name):
     if no_temp:
         msg = msg_setpoint
     else:
-        msg_temp = "{}: Es {:.2f}°C {}. ".format(room_name, space_status[room + 'temperature_realvalue'],
+        msg_temp = "{}: Es ist {:.2f}°C {}. ".format(room_name, space_status[room + 'temperature_realvalue'],
                    "warm" if space_status[room + 'temperature_realvalue'] > 18.0 else "kalt")
         msg = msg_temp + msg_setpoint
     if space_status is not None:
         bot.say(msg)
     else:
-        bot.say("Space status is unbekannt")
+        bot.say("Space status ist unbekannt")
 
 
 @sopel.module.commands('users')
 def users(bot, trigger):
     global space_status
     if space_status is None:
-        bot.say("Space status is unbekannt")
+        bot.say("Space status ist unbekannt")
         return
     known_users = space_status.get('known_users', {})
     unknown_users = space_status.get('unknown_users',0)
@@ -146,7 +146,7 @@ def space_status_all(bot, trigger):
 def space_alarm(bot, trigger):
     global space_status
     if space_status is None:
-        bot.say("Space status is unbekannt")
+        bot.say("Space status ist unbekannt")
         return
     known_users = space_status.get('known_users', {})
     unknown_user = space_status.get('unknown_users',0)
