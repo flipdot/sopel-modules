@@ -87,7 +87,7 @@ def doorState(bot, trigger):
 @sopel.module.commands('temp','temperatur')
 def temp(bot, trigger):
     temperature(bot, '', "lounge");
-    temperature(bot, 'workshop_', "kino");
+    #temperature(bot, 'workshop_', "kino");
 
 def temperature(bot, room, room_name):
     global space_status
@@ -167,7 +167,7 @@ def heat(bot, trigger):
     global space_status
 
     can_names = {
-        "kino" : "thaemin",
+    #    "kino" : "thaemin",
         "chill" : "theemin"
     }
     cmd = trigger.group(2) or "20 all"
