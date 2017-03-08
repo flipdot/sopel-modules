@@ -138,9 +138,19 @@ def users(bot, trigger):
 
 @sopel.module.commands('status')
 def space_status_all(bot, trigger):
+    if not trigger.is_privmsg:
+        status_cnt = bot.db.get_nick_value(trigger.nick, 'status_cnt') or 0
+        if status_cnt > 10:
+            bot.msg(trigger.nick, "!status funktioniert auch per PM")
+            return
+
+        status_cnt += 1
+        bot.db.set_nick_value(trigger.nick, 'status_cnt', status_cnt)
+
     doorState(bot, trigger)
     users(bot, trigger)
     temp(bot, trigger)
+
 
 @sopel.module.commands('alarm')
 def space_alarm(bot, trigger):
