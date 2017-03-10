@@ -18,6 +18,10 @@ MOTION_DETECT_INTERVAL = 3
 space_status = None
 last_motion = None
 
+mampf = "hallo"
+datum = "date"
+name = "horst"
+
 def setup(bot):
     global space_status
     global app
@@ -226,3 +230,16 @@ def heat(bot, trigger):
         except Exception as e:
             print(e)
             bot.say("Da ist ein Fehler aufgetreten ({:s})".format(r))
+
+@sopel.module.commands('essen')
+def futter(bot, trigger):
+
+    global mampf, name, datum
+    bot.say(mampf + " gesetzt von: " + name + " am: " + datum)
+
+@sopel.module.commands('kochen')
+def kochen(bot, trigger):
+    global mampf, name, datum
+    mampf = (trigger.group(2))
+    datum = (time.strftime("%d.%m.%Y"))
+    name = (trigger.nick)
