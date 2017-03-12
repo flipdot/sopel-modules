@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import sopel
 from sopel.module import commands, interval
 from sopel import module
-#from socketIO_client import SocketIO
+# from socketIO_client import SocketIO
 
 import time
 import requests
@@ -22,16 +22,18 @@ mampf = "hallo"
 datum = "date"
 name = "horst"
 
+
 def setup(bot):
     global space_status
     global app
     space_status = update_space_status()
     try:
-        with open("/sys/class/gpio/export","r+") as f:
+        with open("/sys/class/gpio/export", "r+") as f:
             f.write("18")
             f.flush()
     except:
         pass
+
 
 def update_space_status():
     global space_status
@@ -44,13 +46,14 @@ def update_space_status():
     except:
         return space_status
 
+
 @interval(MOTION_DETECT_INTERVAL)
 def motion_detect(bot, force=False):
     global last_motion
-    fd = open("/sys/class/gpio/gpio18/value","r")
+    fd = open("/sys/class/gpio/gpio18/value", "r")
     tmp = fd.read(1)
     fd.close()
-    if tmp  == 0 or tmp == '0' or tmp == "0":
+    if tmp == 0 or tmp == '0' or tmp == "0":
         last_motion = time.strftime("%a %H:%M:%S")
 
 
@@ -65,7 +68,7 @@ def update(bot, force=False):
         return
     if new_state['open'] != space_status['open']:
         for c in bot.config.core.channels:
-            bot.msg(c,"Jmd. hat den Space {}".format("geoeffnet" if new_state['open'] else "geschlossen"))
+            bot.msg(c, "Jmd. hat den Space {}".format("geoeffnet" if new_state['open'] else "geschlossen"))
     space_status = new_state
 
 
@@ -78,7 +81,7 @@ def motion(bot, force=False):
         bot.say("Zuletzt bewegte sich etwas im Space am {:s}".format(last_motion))
 
 
-@sopel.module.commands('tuer','door')
+@sopel.module.commands('tuer', 'door')
 def doorState(bot, trigger):
     global space_status
     if space_status is not None:
@@ -86,10 +89,12 @@ def doorState(bot, trigger):
     else:
         bot.say("Space status is unbekannt")
 
-@sopel.module.commands('temp','temperatur')
+
+@sopel.module.commands('temp', 'temperatur')
 def temp(bot, trigger):
     temperature(bot, '', "lounge");
-    #temperature(bot, 'workshop_', "kino");
+    # temperature(bot, 'workshop_', "kino");
+
 
 def temperature(bot, room, room_name):
     global space_status
@@ -108,7 +113,8 @@ def temperature(bot, room, room_name):
         msg = msg_setpoint
     else:
         msg_temp = "{}: Es ist {:.2f}°C {}. ".format(room_name, space_status[room + 'temperature_realvalue'],
-                   "warm" if space_status[room + 'temperature_realvalue'] > 18.0 else "kalt")
+                                                     "warm" if space_status[
+                                                                   room + 'temperature_realvalue'] > 18.0 else "kalt")
         msg = msg_temp + msg_setpoint
     if space_status is not None:
         bot.say(msg)
@@ -123,7 +129,7 @@ def users(bot, trigger):
         bot.say("Space status ist unbekannt")
         return
     known_users = space_status.get('known_users', {})
-    unknown_users = space_status.get('unknown_users',0)
+    unknown_users = space_status.get('unknown_users', 0)
     if not known_users and (unknown_users == 0):
         bot.say("Es ist niemand im Space")
         return
@@ -137,6 +143,7 @@ def users(bot, trigger):
 
     msg = msg + " sind im Space"
     bot.say(msg)
+
 
 @sopel.module.commands('status')
 def space_status_all(bot, trigger):
@@ -154,7 +161,7 @@ def space_status_all(bot, trigger):
     temp(bot, trigger)
 
 
-@interval(60*60*24)
+@interval(60 * 60 * 24)
 def clear_status_counter(bot, force=False):
     last = bot.db.get_channel_value("#flipdot", "status_cnt") or datetime.datetime.now().month
     if datetime.datetime.now().month == last:
@@ -174,7 +181,7 @@ def space_alarm(bot, trigger):
         bot.say("Space status ist unbekannt")
         return
     known_users = space_status.get('known_users', {})
-    unknown_user = space_status.get('unknown_users',0)
+    unknown_user = space_status.get('unknown_users', 0)
     if space_status['open'] is False and unknown_user is 0 and not known_users:
         bot.say("Niemand zum benachrichtigen im Space")
         return
@@ -185,19 +192,20 @@ def space_alarm(bot, trigger):
     else:
         bot.say("Da ist ein Fehler aufgetreten")
 
-@sopel.module.commands('heizen','heatup', 'heizung')
+
+@sopel.module.commands('heizen', 'heatup', 'heizung')
 @sopel.module.require_chanmsg(message="Dieser Befehl muss im #flipdot channel eingegeben werden")
-@sopel.module.require_privilege(sopel.module.VOICE,"Du darfst das nicht")
+@sopel.module.require_privilege(sopel.module.VOICE, "Du darfst das nicht")
 def heat(bot, trigger):
     global space_status
 
     can_names = {
-    #    "kino" : "thaemin",
-        "chill" : "theemin"
+        #    "kino" : "thaemin",
+        "chill": "theemin"
     }
     cmd = trigger.group(2) or "20 all"
     cmds = cmd.split(" ")
-    
+
     temp = cmds[0] if len(cmds) > 0 else 20
     room = cmds[1] if len(cmds) > 1 else "all"
 
@@ -213,7 +221,7 @@ def heat(bot, trigger):
 
     rooms = []
     if room == "all":
-        for k,v in can_names.items():
+        for k, v in can_names.items():
             rooms.append(k)
     else:
         can_name = can_names[room]
@@ -231,15 +239,19 @@ def heat(bot, trigger):
             print(e)
             bot.say("Da ist ein Fehler aufgetreten ({:s})".format(r))
 
+
 @sopel.module.commands('essen')
 def futter(bot, trigger):
-
     global mampf, name, datum
     bot.say(mampf + " gesetzt von: " + name + " am: " + datum)
+
 
 @sopel.module.commands('kochen')
 def kochen(bot, trigger):
     global mampf, name, datum
-    mampf = (trigger.group(2))
-    datum = (time.strftime("%d.%m.%Y"))
-    name = (trigger.nick)
+    if trigger.group(2) < 4:
+        bot.say("Bitte gib den Kochstatus nach folgendem Schmema ein, [Koch/Ansprechpartner] [Mahlzeit/Essen]")
+    else:
+        mampf = (trigger.group(2))
+        datum = (time.strftime("%d.%m.%Y"))
+        name = (trigger.nick)
