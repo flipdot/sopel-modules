@@ -249,7 +249,7 @@ def futter(bot, trigger):
 @sopel.module.commands('kochen')
 def kochen(bot, trigger):
     global mampf, name, datum
-    if len(trigger.group(2).split(" ")) <= 2:
+    if len(trigger.group(2).split(" ")) < 2:
         bot.say("Bitte gib den Kochstatus nach folgendem Schmema ein, [Koch/Ansprechpartner] [Mahlzeit/Essen]")
     else:
         mampf = (trigger.group(2))
