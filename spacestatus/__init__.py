@@ -269,8 +269,9 @@ def kochen(bot, trigger):
 
     cooking_topic = None
     for t in topics['topic_list']['topics']:
-        if t['category_id']== cooking_category_id:
+        if t['category_id'] == cooking_category_id:
             cooking_topic = t
+            break
 
     cooking_topic_name = cooking_topic['title']
     bot.say("Futter: " + cooking_topic_name)
