@@ -255,3 +255,18 @@ def kochen(bot, trigger):
         mampf = (trigger.group(2))
         datum = (time.strftime("%d.%m.%Y"))
         name = (trigger.nick)
+
+
+@sopel.module.commands('futter')
+def kochen(bot, trigger):
+    api_key = bot.config.spacestatus.forum_key
+    res = requests.get(
+        'https://forum.flipdot.org/latest.json?api_key=' + api_key + '&api_username=flipbot',
+        headers={"Accept": "application/json"})
+    topics = res.json()
+
+    cooking_category_id = 19  # "Kochen & Essen"
+
+    cooking_topic = filter(lambda t: t['category_id'] == cooking_category_id, topics['topic_list']['topics'])[0]
+    cooking_topic_name = cooking_topic['title']
+    bot.say("Futter: " + cooking_topic_name)
