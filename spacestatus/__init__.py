@@ -267,6 +267,10 @@ def kochen(bot, trigger):
 
     cooking_category_id = 19  # "Kochen & Essen"
 
-    cooking_topic = filter(lambda t: t['category_id'] == cooking_category_id, topics['topic_list']['topics'])[0]
+    cooking_topic = None
+    for t in topics['topic_list']['topics']:
+        if t['category_id']== cooking_category_id:
+            cooking_topic = t
+
     cooking_topic_name = cooking_topic['title']
     bot.say("Futter: " + cooking_topic_name)
