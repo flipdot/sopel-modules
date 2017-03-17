@@ -38,13 +38,14 @@ def setup(bot):
 def update_space_status():
     global space_status
     try:
-        r = requests.get("http://flipdot.org/spacestatus/status.json")
+        r = requests.get("http://api.flipdot.org")
         if r.status_code == 200:
             return r.json()
         else:
             return space_status
     except:
         return space_status
+
 
 
 @interval(MOTION_DETECT_INTERVAL)
@@ -121,7 +122,7 @@ def temperature(bot, room, room_name):
     else:
         bot.say("Space status ist unbekannt")
 
-
+"""
 @sopel.module.commands('users')
 def users(bot, trigger):
     global space_status
@@ -143,7 +144,19 @@ def users(bot, trigger):
 
     msg = msg + " sind im Space"
     bot.say(msg)
+"""
 
+@sopel.module.commands('users')
+def users(bot, trigger):
+    global space_status
+    if space_status is None:
+        bot.say("Space status is unbekannt")
+        return
+    known_users = space_status.get('known_users', {})
+    unknown_users = space_status.get('unknown_users', 0)
+    names = space_status.get("state")["sensors"]["people_now_present"][0]["names"]
+    msg = "Es sind im Space: " + names
+    bot.say(msg)
 
 @sopel.module.commands('status')
 def space_status_all(bot, trigger):
@@ -255,3 +268,23 @@ def kochen(bot, trigger):
         mampf = (trigger.group(2))
         datum = (time.strftime("%d.%m.%Y"))
         name = (trigger.nick)
+
+
+@sopel.module.commands('futter')
+def kochen(bot, trigger):
+    api_key = bot.config.spacestatus.forum_key
+    res = requests.get(
+        'https://forum.flipdot.org/latest.json?api_key=' + api_key + '&api_username=flipbot',
+        headers={"Accept": "application/json"})
+    topics = res.json()
+
+    cooking_category_id = 19  # "Kochen & Essen"
+
+    cooking_topic = None
+    for t in topics['topic_list']['topics']:
+        if t['category_id'] == cooking_category_id:
+            cooking_topic = t
+            break
+
+    cooking_topic_name = cooking_topic['title']
+    bot.say("Futter: " + cooking_topic_name)
