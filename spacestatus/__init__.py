@@ -107,10 +107,14 @@ def temperature(bot, room, room_name):
     if no_temp:
         msg = msg_setpoint
     else:
-        msg_temp = "{}: Es ist aktuell {:.2f}°C {}. ".format(state['temperature_realvalue'],
-                                                 "warm" if state[
-                                                                'temperature_realvalue'] > 18.0
-        elif state['temperature_realvalue'] > 10.0 else "arschkalt")
+        if state > 18.0:
+            zustand = "warm"
+        elif state > 10.0:
+            zustand = "kalt"
+        else : zustand ="arschkalt"
+
+        msg_temp = "Es ist aktuell {:.2f}°C {}. ".format(state, zustand)
+
         msg = msg_temp + msg_setpoint
     if space_status is not None:
         bot.say(msg)
