@@ -46,18 +46,6 @@ def update_space_status():
     except:
         return space_status
 
-
-
-@interval(MOTION_DETECT_INTERVAL)
-def motion_detect(bot, force=False):
-    global last_motion
-    fd = open("/sys/class/gpio/gpio18/value", "r")
-    tmp = fd.read(1)
-    fd.close()
-    if tmp == 0 or tmp == '0' or tmp == "0":
-        last_motion = time.strftime("%a %H:%M:%S")
-
-
 @interval(INTERVAL)
 def update(bot, force=False):
     global space_status
@@ -69,9 +57,18 @@ def update(bot, force=False):
         return
     if new_state['open'] != space_status['open']:
         for c in bot.config.core.channels:
-            bot.msg(c, "Jmd. hat den Space {}".format("geoeffnet" if new_state['open'] else "geschlossen"))
+            bot.msg(c, "Der Space wurde {}".format("geoeffnet" if new_state['open'] else "geschlossen"))
     space_status = new_state
 
+
+@interval(MOTION_DETECT_INTERVAL)
+def motion_detect(bot, force=False):
+    global last_motion
+    fd = open("/sys/class/gpio/gpio18/value", "r")
+    tmp = fd.read(1)
+    fd.close()
+    if tmp == 0 or tmp == '0' or tmp == "0":
+        last_motion = time.strftime("%a %H:%M:%S")
 
 @sopel.module.commands('bewegungsmelder')
 def motion(bot, force=False):
@@ -101,22 +98,19 @@ def temp(bot, trigger):
 def temperature(bot, room, room_name):
     global space_status
     no_temp = False
-    state = space_status.get('value'[0])
-    if state is None:
-        state = "nicht erreichbar ({})".format(room_name)
-        no_temp = True
-    elif state < 6.0:
-        state = "aus"
+    state = space_status.get("state")["sensors"]["temperature"]['value'][0]
+    if state < 6.0:
+        status = "aus"
     else:
-        state = "an"
-
-    msg_setpoint = "Die Heizung ist {}".format(state)
+        status = "an"
+    msg_setpoint = "Die Heizung ist {}".format(status)
     if no_temp:
         msg = msg_setpoint
     else:
-        msg_temp = "{}: Es ist {:.2f}°C {}. ".format(room_name, space_status[room + 'temperature_realvalue'],
-                                                     "warm" if space_status[
-                                                                   room + 'temperature_realvalue'] > 18.0 else "kalt")
+        msg_temp = "{}: Es ist aktuell {:.2f}°C {}. ".format(state['temperature_realvalue'],
+                                                 "warm" if state[
+                                                                'temperature_realvalue'] > 18.0
+        elif state['temperature_realvalue'] > 10.0 else "arschkalt")
         msg = msg_temp + msg_setpoint
     if space_status is not None:
         bot.say(msg)
