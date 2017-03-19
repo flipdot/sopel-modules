@@ -17,7 +17,7 @@ INTERVAL = 60
 MOTION_DETECT_INTERVAL = 3
 space_status = None
 last_motion = None
-CO2 = 100
+CO2 = 300
 
 mampf = "hallo"
 datum = "date"
@@ -62,10 +62,11 @@ def update(bot, force=False):
 
 @interval(CO2)
 def co2(bot, force=False):
-    global CO2
+    global space_status
     wert = space_status.get("state")["sensors"]["co2"][0]["value"]
-    if wert > 1000:
-       bot.say("Wir störben!!1! Macht sofort ein Fenster auf, der CO2 Wert ist zu hoch.")
+    if wert > 1800:
+        for c in bot.config.core.channels:
+            bot.msg(c, "Wir störben!!1! Mach sofort ein Fenster auf, der CO2 Wert ist zu hoch.")
 
 @interval(MOTION_DETECT_INTERVAL)
 def motion_detect(bot, force=False):
@@ -88,9 +89,9 @@ def motion(bot, force=False):
 @sopel.module.commands('tuer', 'door')
 def doorState(bot, trigger):
     global space_status
-    y = space_status.get("state")["sensors"]["door"]["value"][0]
+    y = space_status.get("state")["sensors"]["door"][0]["value"]
     if y is not None:
-        bot.say("Space ist {}".format("auf" if y[1] else "zu"))
+        bot.say("Space ist {}".format("auf" if y == 1 else "zu"))
     else:
         bot.say("Space status is unbekannt")
 
@@ -180,7 +181,7 @@ def space_alarm(bot, trigger):
     known_users = space_status.get('known_users', {})
     unknown_users = space_status.get('unknown_users', 0)
     names = space_status.get("state")["sensors"]["people_now_present"][0]["names"]
-    if space_status.get("state")["sensors"]["door"]["value"][0] is == 0 and unknown_users is 0 and not known_users:
+    if space_status.get("state")["sensors"]["door"]["value"][0] is 0 and unknown_users is 0 and not known_users:
         bot.say("Niemand zum benachrichtigen im Space")
         return
 
