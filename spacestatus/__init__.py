@@ -17,6 +17,7 @@ INTERVAL = 60
 MOTION_DETECT_INTERVAL = 3
 space_status = None
 last_motion = None
+CO2 = 100
 
 mampf = "hallo"
 datum = "date"
@@ -37,14 +38,13 @@ def setup(bot):
 
 def update_space_status():
     global space_status
-    try:
-        r = requests.get("http://api.flipdot.org")
-        if r.status_code == 200:
-            return r.json()
-        else:
-            return space_status
-    except:
+
+    r = requests.get("http://api.flipdot.org")
+    if r.status_code == 200:
+        return r.json()
+    else:
         return space_status
+
 
 @interval(INTERVAL)
 def update(bot, force=False):
@@ -60,6 +60,12 @@ def update(bot, force=False):
             bot.msg(c, "Der Space wurde {}".format("geoeffnet" if new_state['open'] else "geschlossen"))
     space_status = new_state
 
+@interval(CO2)
+def co2(bot, force=False):
+    global CO2
+    wert = space_status.get("state")["sensors"]["co2"][0]["value"]
+    if wert > 1000:
+       bot.say("Wir störben!!1! Macht sofort ein Fenster auf, der CO2 Wert ist zu hoch.")
 
 @interval(MOTION_DETECT_INTERVAL)
 def motion_detect(bot, force=False):
@@ -88,62 +94,41 @@ def doorState(bot, trigger):
     else:
         bot.say("Space status is unbekannt")
 
-
 @sopel.module.commands('temp', 'temperatur')
 def temp(bot, trigger):
-    temperature(bot, '', "lounge");
+    temperature(bot, '', "lounge")
     # temperature(bot, 'workshop_', "kino");
 
 
 def temperature(bot, room, room_name):
     global space_status
     no_temp = False
-    state = space_status.get("state")["sensors"]["temperature"]['value'][0]
-    if state < 6.0:
-        status = "aus"
-    else:
-        status = "an"
-    msg_setpoint = "Die Heizung ist {}".format(status)
-    if no_temp:
-        msg = msg_setpoint
-    else:
+    for heiz in space_status.get("state")["sensors"]["temperature"]:
+        state = heiz['value']
+        locate = heiz['location']
+
+        if state < 6.0:
+            status = "aus"
+        else:
+            status = "an"
+        msg_setpoint = "Die Heizung ist {}".format(status)
+
+
         if state > 18.0:
             zustand = "warm"
         elif state > 10.0:
             zustand = "kalt"
-        else : zustand ="arschkalt"
+        else:
+            zustand = "arschkalt"
 
-        msg_temp = "Es ist aktuell {:.2f}°C {}. ".format(state, zustand)
-
+        msg_temp = "In {} ist es aktuell {:.2f}°C {}. ".format(locate, state, zustand)
         msg = msg_temp + msg_setpoint
-    if space_status is not None:
-        bot.say(msg)
-    else:
-        bot.say("Space status ist unbekannt")
 
-"""
-@sopel.module.commands('users')
-def users(bot, trigger):
-    global space_status
-    if space_status is None:
-        bot.say("Space status ist unbekannt")
-        return
-    known_users = space_status.get('known_users', {})
-    unknown_users = space_status.get('unknown_users', 0)
-    if not known_users and (unknown_users == 0):
-        bot.say("Es ist niemand im Space")
-        return
-    if not known_users:
-        bot.say("Es sind {} unbekannte im Space".format(unknown_users))
-        return
+        if space_status is not None:
+            bot.say(msg)
+        else:
+            bot.say("Space status ist unbekannt")
 
-    msg = ', '.join(x['nick'] for x in known_users)
-    if len(known_users) > 0:
-        msg = msg + " und {} weitere".format(unknown_users)
-
-    msg = msg + " sind im Space"
-    bot.say(msg)
-"""
 
 @sopel.module.commands('users')
 def users(bot, trigger):
@@ -162,7 +147,7 @@ def space_status_all(bot, trigger):
     if not trigger.is_privmsg:
         status_cnt = bot.db.get_nick_value(trigger.nick, 'status_cnt') or 0
         if status_cnt > 10:
-            bot.msg(trigger.nick, "!status funktioniert auch per PM")
+            bot.msg(trigger.nick, "Wir kennen uns doch schon so lange, sprich mich lieber per PM an :o)")
             return
 
         status_cnt += 1
@@ -193,8 +178,9 @@ def space_alarm(bot, trigger):
         bot.say("Space status ist unbekannt")
         return
     known_users = space_status.get('known_users', {})
-    unknown_user = space_status.get('unknown_users', 0)
-    if space_status['open'] is False and unknown_user is 0 and not known_users:
+    unknown_users = space_status.get('unknown_users', 0)
+    names = space_status.get("state")["sensors"]["people_now_present"][0]["names"]
+    if space_status.get("state")["sensors"]["door"]["value"][0] is == 0 and unknown_users is 0 and not known_users:
         bot.say("Niemand zum benachrichtigen im Space")
         return
 
