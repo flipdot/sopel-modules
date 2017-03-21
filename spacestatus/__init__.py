@@ -17,6 +17,7 @@ INTERVAL = 60
 MOTION_DETECT_INTERVAL = 3
 space_status = None
 last_motion = None
+CO2 = 300
 
 mampf = "hallo"
 datum = "date"
@@ -37,24 +38,12 @@ def setup(bot):
 
 def update_space_status():
     global space_status
-    try:
-        r = requests.get("http://flipdot.org/spacestatus/status.json")
-        if r.status_code == 200:
-            return r.json()
-        else:
-            return space_status
-    except:
+
+    r = requests.get("http://api.flipdot.org")
+    if r.status_code == 200:
+        return r.json()
+    else:
         return space_status
-
-
-@interval(MOTION_DETECT_INTERVAL)
-def motion_detect(bot, force=False):
-    global last_motion
-    fd = open("/sys/class/gpio/gpio18/value", "r")
-    tmp = fd.read(1)
-    fd.close()
-    if tmp == 0 or tmp == '0' or tmp == "0":
-        last_motion = time.strftime("%a %H:%M:%S")
 
 
 @interval(INTERVAL)
@@ -68,9 +57,25 @@ def update(bot, force=False):
         return
     if new_state['open'] != space_status['open']:
         for c in bot.config.core.channels:
-            bot.msg(c, "Jmd. hat den Space {}".format("geoeffnet" if new_state['open'] else "geschlossen"))
+            bot.msg(c, "Der Space wurde {}".format("geoeffnet" if new_state['open'] else "geschlossen"))
     space_status = new_state
 
+@interval(CO2)
+def co2(bot, force=False):
+    global space_status
+    wert = space_status.get("state")["sensors"]["co2"][0]["value"]
+    if wert > 1800:
+        for c in bot.config.core.channels:
+            bot.msg(c, "Wir störben!!1! Mach sofort ein Fenster auf, der CO2 Wert ist zu hoch.")
+
+@interval(MOTION_DETECT_INTERVAL)
+def motion_detect(bot, force=False):
+    global last_motion
+    fd = open("/sys/class/gpio/gpio18/value", "r")
+    tmp = fd.read(1)
+    fd.close()
+    if tmp == 0 or tmp == '0' or tmp == "0":
+        last_motion = time.strftime("%a %H:%M:%S")
 
 @sopel.module.commands('bewegungsmelder')
 def motion(bot, force=False):
@@ -84,73 +89,66 @@ def motion(bot, force=False):
 @sopel.module.commands('tuer', 'door')
 def doorState(bot, trigger):
     global space_status
-    if space_status is not None:
-        bot.say("Space ist {}".format("auf" if space_status['open'] else "zu"))
+    y = space_status.get("state")["sensors"]["door"][0]["value"]
+    if y is not None:
+        bot.say("Space ist {}".format("auf" if y == 1 else "zu"))
     else:
         bot.say("Space status is unbekannt")
 
-
 @sopel.module.commands('temp', 'temperatur')
 def temp(bot, trigger):
-    temperature(bot, '', "lounge");
+    temperature(bot, '', "lounge")
     # temperature(bot, 'workshop_', "kino");
 
 
 def temperature(bot, room, room_name):
     global space_status
     no_temp = False
-    state = space_status.get(room + 'temperature_setpoint')
-    if state is None:
-        state = "nicht erreichbar ({})".format(room_name)
-        no_temp = True
-    elif state < 6.0:
-        state = "aus"
-    else:
-        state = "an"
+    for heiz in space_status.get("state")["sensors"]["temperature"]:
+        state = heiz['value']
+        locate = heiz['location']
 
-    msg_setpoint = "Die Heizung ist {}".format(state)
-    if no_temp:
-        msg = msg_setpoint
-    else:
-        msg_temp = "{}: Es ist {:.2f}°C {}. ".format(room_name, space_status[room + 'temperature_realvalue'],
-                                                     "warm" if space_status[
-                                                                   room + 'temperature_realvalue'] > 18.0 else "kalt")
+        if state < 6.0:
+            status = "aus"
+        else:
+            status = "an"
+        msg_setpoint = "Die Heizung ist {}".format(status)
+
+
+        if state > 18.0:
+            zustand = "warm"
+        elif state > 10.0:
+            zustand = "kalt"
+        else:
+            zustand = "arschkalt"
+
+        msg_temp = "In {} ist es aktuell {:.2f}°C {}. ".format(locate, state, zustand)
         msg = msg_temp + msg_setpoint
-    if space_status is not None:
-        bot.say(msg)
-    else:
-        bot.say("Space status ist unbekannt")
+
+        if space_status is not None:
+            bot.say(msg)
+        else:
+            bot.say("Space status ist unbekannt")
 
 
 @sopel.module.commands('users')
 def users(bot, trigger):
     global space_status
     if space_status is None:
-        bot.say("Space status ist unbekannt")
+        bot.say("Space status is unbekannt")
         return
     known_users = space_status.get('known_users', {})
     unknown_users = space_status.get('unknown_users', 0)
-    if not known_users and (unknown_users == 0):
-        bot.say("Es ist niemand im Space")
-        return
-    if not known_users:
-        bot.say("Es sind {} unbekannte im Space".format(unknown_users))
-        return
-
-    msg = ', '.join(x['nick'] for x in known_users)
-    if len(known_users) > 0:
-        msg = msg + " und {} weitere".format(unknown_users)
-
-    msg = msg + " sind im Space"
+    names = space_status.get("state")["sensors"]["people_now_present"][0]["names"]
+    msg = "Es sind im Space: " + names
     bot.say(msg)
-
 
 @sopel.module.commands('status')
 def space_status_all(bot, trigger):
     if not trigger.is_privmsg:
         status_cnt = bot.db.get_nick_value(trigger.nick, 'status_cnt') or 0
         if status_cnt > 10:
-            bot.msg(trigger.nick, "!status funktioniert auch per PM")
+            bot.msg(trigger.nick, "Wir kennen uns doch schon so lange, sprich mich lieber per PM an :o)")
             return
 
         status_cnt += 1
@@ -181,8 +179,9 @@ def space_alarm(bot, trigger):
         bot.say("Space status ist unbekannt")
         return
     known_users = space_status.get('known_users', {})
-    unknown_user = space_status.get('unknown_users', 0)
-    if space_status['open'] is False and unknown_user is 0 and not known_users:
+    unknown_users = space_status.get('unknown_users', 0)
+    names = space_status.get("state")["sensors"]["people_now_present"][0]["names"]
+    if space_status.get("state")["sensors"]["door"]["value"][0] is 0 and unknown_users is 0 and not known_users:
         bot.say("Niemand zum benachrichtigen im Space")
         return
 
