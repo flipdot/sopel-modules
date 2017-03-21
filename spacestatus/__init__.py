@@ -45,6 +45,14 @@ def update_space_status():
     else:
         return space_status
 
+def get_sensor_val(name, field='value')
+    global space_status
+    try:
+        return space_status["state"]["sensors"][name][0][field]
+    except:
+        return None
+
+
 
 @interval(INTERVAL)
 def update(bot, force=False):
@@ -62,9 +70,8 @@ def update(bot, force=False):
 
 @interval(CO2)
 def co2(bot, force=False):
-    global space_status
-    wert = space_status.get("state")["sensors"]["co2"][0]["value"]
-    if wert > 1800:
+    wert = get_sensor_val("co2")
+    if wert and wert > 1800:
         for c in bot.config.core.channels:
             bot.msg(c, "Wir störben!!1! Mach sofort ein Fenster auf, der CO2 Wert ist zu hoch.")
 
@@ -94,6 +101,7 @@ def doorState(bot, trigger):
         bot.say("Space ist {}".format("auf" if y == 1 else "zu"))
     else:
         bot.say("Space status is unbekannt")
+
 
 @sopel.module.commands('temp', 'temperatur')
 def temp(bot, trigger):
@@ -130,15 +138,18 @@ def users(bot, trigger):
     if space_status is None:
         bot.say("Space status is unbekannt")
         return
-    names = space_status.get("state")["sensors"]["people_now_present"][0]["names"]
-    user_count = space_status.get("state")["sensors"]["people_now_present"][0]["value"]
-    if user_count is 0:
+
+    names = get_sensor_val("people_now_present", "names")
+    user_count = get_sensor_val("people_now_present")
+
+    if not user_count or user_count is 0:
         bot.say("Es ist niemand im Space")
         return
+
     names = names.split(",")
     user_count -= len(names)
-
     known = ', '.join(x for x in names)
+
     if user_count is 0:
         bot.say("Es sind im Space: {:s}".format(known))
         return
