@@ -130,11 +130,23 @@ def users(bot, trigger):
     if space_status is None:
         bot.say("Space status is unbekannt")
         return
-    known_users = space_status.get('known_users', {})
-    unknown_users = space_status.get('unknown_users', 0)
     names = space_status.get("state")["sensors"]["people_now_present"][0]["names"]
-    msg = "Es sind im Space: " + names
-    bot.say(msg)
+    user_count = space_status.get("state")["sensors"]["people_now_present"][0]["value"]
+    if user_count is 0:
+        bot.say("Es ist niemand im Space")
+        return
+    names = names.split(",")
+    user_count -= len(names)
+
+    known = ', '.join(x for x in names)
+    if user_count is 0:
+        bot.say("Es sind im Space: {:s}".format(known))
+        return
+    elif len(names):
+        bot.say("Es sind {} unbekannte im Space".format(user_count))
+    else:
+        bot.say("Es sind {} unbekannte und {} im Space".format(user_count, known))
+
 
 @sopel.module.commands('status')
 def space_status_all(bot, trigger):
