@@ -151,9 +151,8 @@ def users(bot, trigger):
     known = ', '.join(x for x in names)
 
     if user_count is 0:
-        bot.say("Es sind im Space: {:s}".format(known))
-        return
-    elif len(names):
+        bot.say("Es sind im Space: {}".format(known))
+    elif len(names) is 0:
         bot.say("Es sind {} unbekannte im Space".format(user_count))
     else:
         bot.say("Es sind {} unbekannte und {} im Space".format(user_count, known))
@@ -190,17 +189,6 @@ def clear_status_counter(bot, force=False):
 
 @sopel.module.commands('alarm')
 def space_alarm(bot, trigger):
-    global space_status
-    if space_status is None:
-        bot.say("Space status ist unbekannt")
-        return
-    known_users = space_status.get('known_users', {})
-    unknown_users = space_status.get('unknown_users', 0)
-    names = space_status.get("state")["sensors"]["people_now_present"][0]["names"]
-    if space_status.get("state")["sensors"]["door"]["value"][0] is 0 and unknown_users is 0 and not known_users:
-        bot.say("Niemand zum benachrichtigen im Space")
-        return
-
     r = requests.post("http://rail.fd:8080/Hutschiene/RedLight", data={'blink': 'true'})
     if r.status_code is 200:
         bot.say("done")
