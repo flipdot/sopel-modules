@@ -96,9 +96,9 @@ def motion(bot, force=False):
 @sopel.module.commands('tuer', 'door')
 def doorState(bot, trigger):
     global space_status
-    y = space_status.get("state")["sensors"]["door"][0]["value"]
-    if y is not None:
-        bot.say("Space ist {}".format("auf" if y == 1 else "zu"))
+    y = space_status.get("state").get("open")
+    if y:
+        bot.say("Space ist {}".format("auf" if y else "zu"))
     else:
         bot.say("Space status is unbekannt")
 
