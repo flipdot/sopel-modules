@@ -108,13 +108,6 @@ def temperature(bot, room, room_name):
         state = heiz['value']
         locate = heiz['location']
 
-        if state < 6.0:
-            status = "aus"
-        else:
-            status = "an"
-        msg_setpoint = "Die Heizung ist {}".format(status)
-
-
         if state > 18.0:
             zustand = "warm"
         elif state > 10.0:
