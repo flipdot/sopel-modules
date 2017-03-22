@@ -68,14 +68,14 @@ def co2(bot, force=False):
         for c in bot.config.core.channels:
             bot.msg(c, "Wir störben!!1! Mach sofort ein Fenster auf, der CO2 Wert ist zu hoch.")
 
-@interval(MOTION_DETECT_INTERVAL)
+""""@interval(MOTION_DETECT_INTERVAL)
 def motion_detect(bot, force=False):
     global last_motion
     fd = open("/sys/class/gpio/gpio18/value", "r")
     tmp = fd.read(1)
     fd.close()
     if tmp == 0 or tmp == '0' or tmp == "0":
-        last_motion = time.strftime("%a %H:%M:%S")
+        last_motion = time.strftime("%a %H:%M:%S")"""
 
 @sopel.module.commands('bewegungsmelder')
 def motion(bot, force=False):
@@ -251,9 +251,9 @@ def kochen(bot, trigger):
     if len(trigger.group(2).split(" ")) < 2:
         bot.say("Bitte gib den Kochstatus nach folgendem Schmema ein, [Koch/Ansprechpartner] [Mahlzeit/Essen]")
     else:
-        mampf = (trigger.group(2))
-        datum = (time.strftime("%d.%m.%Y"))
-        name = (trigger.nick)
+        mampf = bot.db.mampf = (trigger.group(2))
+        datum = bot.db.get_nick_value.timestamp(time.strftime("%d.%m.%Y"))
+        name = bot.db.nicky(trigger.nick)
 
 
 @sopel.module.commands('futter')
