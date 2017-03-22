@@ -19,10 +19,9 @@ space_status = None
 last_motion = None
 CO2 = 300
 
-mampf = "hallo"
-datum = "date"
-name = "horst"
-
+mampf = bot.db.mampf = "hallo"
+datum = bot.db.timestamp(time.strftime("%d.%m.%Y"))
+name = bot.db.nicky("Horst")
 
 def setup(bot):
     global space_status
@@ -252,7 +251,7 @@ def kochen(bot, trigger):
         bot.say("Bitte gib den Kochstatus nach folgendem Schmema ein, [Koch/Ansprechpartner] [Mahlzeit/Essen]")
     else:
         mampf = bot.db.mampf = (trigger.group(2))
-        datum = bot.db.get_nick_value.timestamp(time.strftime("%d.%m.%Y"))
+        datum = bot.db.timestamp(time.strftime("%d.%m.%Y"))
         name = bot.db.nicky(trigger.nick)
 
 
