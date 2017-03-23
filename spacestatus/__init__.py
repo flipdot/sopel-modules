@@ -19,10 +19,6 @@ space_status = None
 last_motion = None
 CO2 = 300
 
-mampf = bot.db.mampf = "hallo"
-datum = bot.db.timestamp(time.strftime("%d.%m.%Y"))
-name = bot.db.nicky("Horst")
-
 def setup(bot):
     global space_status
     global app
@@ -44,7 +40,7 @@ def update_space_status():
     else:
         return space_status
 
-def get_sensor_val(name, field='value')
+def get_sensor_val(name, field='value'):
     global space_status
     try:
         return space_status["state"]["sensors"][name][0][field]
@@ -74,14 +70,14 @@ def co2(bot, force=False):
         for c in bot.config.core.channels:
             bot.msg(c, "Wir störben!!1! Mach sofort ein Fenster auf, der CO2 Wert ist zu hoch.")
 
-""""@interval(MOTION_DETECT_INTERVAL)
+@interval(MOTION_DETECT_INTERVAL)
 def motion_detect(bot, force=False):
     global last_motion
     fd = open("/sys/class/gpio/gpio18/value", "r")
     tmp = fd.read(1)
     fd.close()
     if tmp == 0 or tmp == '0' or tmp == "0":
-        last_motion = time.strftime("%a %H:%M:%S")"""
+        last_motion = time.strftime("%a %H:%M:%S")
 
 @sopel.module.commands('bewegungsmelder')
 def motion(bot, force=False):
@@ -96,7 +92,7 @@ def motion(bot, force=False):
 def doorState(bot, trigger):
     global space_status
     y = space_status.get("state").get("open")
-    if y:
+    if y is not None:
         bot.say("Space ist {}".format("auf" if y else "zu"))
     else:
         bot.say("Space status is unbekannt")
@@ -110,7 +106,11 @@ def temp(bot, trigger):
 
 def temperature(bot, room, room_name):
     global space_status
-    no_temp = False
+
+    if space_status is None:
+        bot.say("Space status ist unbekannt")
+        return
+
     for heiz in space_status.get("state")["sensors"]["temperature"]:
         state = heiz['value']
         locate = heiz['location']
@@ -122,13 +122,8 @@ def temperature(bot, room, room_name):
         else:
             zustand = "arschkalt"
 
-        msg_temp = "In {} ist es aktuell {:.2f}°C {}. ".format(locate, state, zustand)
-        msg = msg_temp + msg_setpoint
+        bot.say("In {} ist es aktuell {:.2f}°C {}. ".format(locate, state, zustand))
 
-        if space_status is not None:
-            bot.say(msg)
-        else:
-            bot.say("Space status ist unbekannt")
 
 
 @sopel.module.commands('users')
@@ -243,24 +238,24 @@ def heat(bot, trigger):
 
 
 @sopel.module.commands('essen')
-def futter(bot, trigger):
-    global mampf, name, datum
-    bot.say(mampf + " gesetzt von: " + name + " am: " + datum)
+def essen(bot, trigger):
+    futter = bot.db.get_channel_value("#flipdot", "hapahapa") or "nix"
+    bot.say(futter)
 
 
 @sopel.module.commands('kochen')
 def kochen(bot, trigger):
-    global mampf, name, datum
-    if len(trigger.group(2).split(" ")) < 2:
+    if trigger.group(2) is None or len(trigger.group(2).split(" ")) < 2:
         bot.say("Bitte gib den Kochstatus nach folgendem Schmema ein, [Koch/Ansprechpartner] [Mahlzeit/Essen]")
     else:
-        mampf = bot.db.mampf = (trigger.group(2))
-        datum = bot.db.timestamp(time.strftime("%d.%m.%Y"))
-        name = bot.db.nicky(trigger.nick)
+        x = trigger.group(2).split(" ")
+        msg = "{} kocht {}".format(x[0], x[1])
+        bot.db.set_channel_value("#flipdot", "hapahapa", msg)
+        bot.say("done")
 
 
 @sopel.module.commands('futter')
-def kochen(bot, trigger):
+def futter(bot, trigger):
     api_key = bot.config.spacestatus.forum_key
     res = requests.get(
         'https://forum.flipdot.org/latest.json?api_key=' + api_key + '&api_username=flipbot',
