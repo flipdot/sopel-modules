@@ -14,7 +14,8 @@ def hello():
     data = request.get_json(force=True, silent=True)
     msg = data['msg']
     if msg and bot:
-        bot.say(str(msg))
+        for c in bot.config.core.channels:
+            bot.msg(c, str(msg))
 
     return '{ "status": "ok" }'
 
