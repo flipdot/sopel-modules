@@ -4,8 +4,7 @@ import sopel
 from sopel.module import commands, interval
 from threading import Thread
 
-from webserver import get_msgs
-from webserver import run_server
+from .webserver import run_server
 
 from sopel import module
 # from socketIO_client import SocketIO
