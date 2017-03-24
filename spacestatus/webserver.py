@@ -17,7 +17,7 @@ def hello():
 
     msg = json_request['msg']
     if msg:
-        msgs.append(msg)
+        msgs.append(str(msg))
 
     return '{ "status": "ok" }'
 

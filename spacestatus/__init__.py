@@ -71,7 +71,7 @@ def update(bot, force=False):
     msgs = get_msgs()
     if msgs:
         for m in msgs:
-            bot.msg(m)
+            bot.say(m)
 
     new_state = update_space_status()
     if new_state is None:
