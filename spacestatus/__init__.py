@@ -67,7 +67,7 @@ def update(bot, force=False):
     global space_status
     global webserver_thread
 
-    if webserver_thread:
+    if not webserver_thread:
         webserver_thread = Thread(target=run_server, args=(bot,))
         webserver_thread.daemon = True
         webserver_thread.start()
