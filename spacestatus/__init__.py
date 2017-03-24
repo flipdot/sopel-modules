@@ -2,6 +2,11 @@
 from __future__ import absolute_import
 import sopel
 from sopel.module import commands, interval
+from threading import Thread
+
+from webserver import get_msgs
+from webserver import run_server
+
 from sopel import module
 # from socketIO_client import SocketIO
 
@@ -22,6 +27,9 @@ mampf = "hallo"
 datum = "date"
 name = "horst"
 
+webserver_thread = Thread(target=run_server,args=())
+webserver_thread.daemon = True
+webserver_thread.start()
 
 def setup(bot):
     global space_status
@@ -60,6 +68,12 @@ def motion_detect(bot, force=False):
 @interval(INTERVAL)
 def update(bot, force=False):
     global space_status
+
+    msgs = get_msgs()
+    if msgs:
+        for m in msgs:
+            bot.msg(m)
+
     new_state = update_space_status()
     if new_state is None:
         return
