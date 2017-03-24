@@ -34,7 +34,7 @@ def setup(bot):
     global space_status
     global app
 
-    webserver_thread = Thread(target=run_server, args=())
+    webserver_thread = Thread(target=run_server, args=(bot))
     webserver_thread.daemon = True
     webserver_thread.start()
 
@@ -68,11 +68,6 @@ def get_sensor_val(name, field='value'):
 @interval(INTERVAL)
 def update(bot, force=False):
     global space_status
-
-    msgs = get_msgs()
-    if msgs:
-        for m in msgs:
-            bot.say(m)
 
     new_state = update_space_status()
     if new_state is None:
