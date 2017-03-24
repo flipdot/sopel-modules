@@ -28,14 +28,12 @@ name = "horst"
 
 CO2 = 300
 
+global webserver_thread
+webserver_thread = None
 
 def setup(bot):
     global space_status
     global app
-
-    webserver_thread = Thread(target=run_server, args=(bot,))
-    webserver_thread.daemon = True
-    webserver_thread.start()
 
     space_status = update_space_status()
     try:
@@ -67,6 +65,12 @@ def get_sensor_val(name, field='value'):
 @interval(INTERVAL)
 def update(bot, force=False):
     global space_status
+    global webserver_thread
+
+    if webserver_thread:
+        webserver_thread = Thread(target=run_server, args=(bot,))
+        webserver_thread.daemon = True
+        webserver_thread.start()
 
     new_state = update_space_status()
     if new_state is None:
