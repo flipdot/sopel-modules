@@ -11,9 +11,9 @@ global bot
 def hello():
     global bot
 
-    data = request.get_json(silent=True)
+    data = request.get_json(force=True, silent=True)
     msg = data['msg']
-    if msg:
+    if msg and bot:
         bot.say(str(msg))
 
     return '{ "status": "ok" }'
@@ -24,4 +24,4 @@ def run_server(b):
     app.run(host='0.0.0.0', port=7645)
 
 if __name__ == "__main__":
-    run_server()
+    run_server(None)
