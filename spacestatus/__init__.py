@@ -33,7 +33,7 @@ def setup(bot):
     global space_status
     global app
 
-    webserver_thread = Thread(target=run_server, args=(bot))
+    webserver_thread = Thread(target=run_server, args=(bot,))
     webserver_thread.daemon = True
     webserver_thread.start()
 
