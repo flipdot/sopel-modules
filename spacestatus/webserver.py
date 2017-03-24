@@ -11,10 +11,8 @@ global bot
 def hello():
     global bot
 
-    data = request.data
-    json_request = json.loads(data)
-
-    msg = json_request['msg']
+    data = request.get_json(silent=True)
+    msg = data['msg']
     if msg:
         bot.say(str(msg))
 
