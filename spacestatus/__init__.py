@@ -30,13 +30,14 @@ name = "horst"
 CO2 = 300
 
 
-webserver_thread = Thread(target=run_server,args=())
-webserver_thread.daemon = True
-webserver_thread.start()
-
 def setup(bot):
     global space_status
     global app
+
+    webserver_thread = Thread(target=run_server, args=())
+    webserver_thread.daemon = True
+    webserver_thread.start()
+
     space_status = update_space_status()
     try:
         with open("/sys/class/gpio/export", "r+") as f:
