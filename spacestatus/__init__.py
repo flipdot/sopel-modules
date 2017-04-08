@@ -17,11 +17,9 @@ INTERVAL = 60
 MOTION_DETECT_INTERVAL = 3
 space_status = None
 last_motion = None
-CO2 = 300
+CO2 = 3600
 
-mampf = bot.db.mampf = "hallo"
-datum = bot.db.timestamp(time.strftime("%d.%m.%Y"))
-name = bot.db.nicky("Horst")
+
 
 def setup(bot):
     global space_status
@@ -63,18 +61,18 @@ def update(bot, force=False):
 def co2(bot, force=False):
     global space_status
     wert = space_status.get("state")["sensors"]["co2"][0]["value"]
-    if wert > 1800:
+    if wert > 2400:
         for c in bot.config.core.channels:
             bot.msg(c, "Wir störben!!1! Mach sofort ein Fenster auf, der CO2 Wert ist zu hoch.")
 
-""""@interval(MOTION_DETECT_INTERVAL)
+@interval(MOTION_DETECT_INTERVAL)
 def motion_detect(bot, force=False):
     global last_motion
     fd = open("/sys/class/gpio/gpio18/value", "r")
     tmp = fd.read(1)
     fd.close()
     if tmp == 0 or tmp == '0' or tmp == "0":
-        last_motion = time.strftime("%a %H:%M:%S")"""
+        last_motion = time.strftime("%a %H:%M:%S")
 
 @sopel.module.commands('bewegungsmelder')
 def motion(bot, force=False):
@@ -240,7 +238,9 @@ def heat(bot, trigger):
 
 @sopel.module.commands('essen')
 def futter(bot, trigger):
-    global mampf, name, datum
+    mampf = bot.db.mampf = "essen"
+    datum = bot.db.timestamp(time.strftime("%d.%m.%Y"))
+    name = bot.db.nicky("hello")
     bot.say(mampf + " gesetzt von: " + name + " am: " + datum)
 
 
