@@ -26,7 +26,7 @@ mampf = "hallo"
 datum = "date"
 name = "horst"
 
-CO2 = 300
+CO2 = 3600
 
 def setup(bot):
     global space_status
@@ -81,7 +81,7 @@ def update(bot, force=False):
 @interval(CO2)
 def co2(bot, force=False):
     wert = get_sensor_val("co2")
-    if wert and wert > 1800:
+    if wert and wert > 2400:
         for c in bot.config.core.channels:
             bot.msg(c, "Wir störben!!1! Mach sofort ein Fenster auf, der CO2 Wert ist zu hoch.")
 
