@@ -95,11 +95,8 @@ def motion_detect(bot, force=False):
         last_motion = time.strftime("%a %H:%M:%S")
 
 @sopel.module.commands('bewegungsmelder')
+@sopel.module.require_privmsg("Sprich mich lieber in ner Query an ;)")
 def motion(bot, force=False):
-    if not trigger.is_privmsg:
-        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
-        return
-
     global last_motion
     if last_motion is None:
         bot.say("Es wurde noch keine Bewegung erkannt")
@@ -108,11 +105,8 @@ def motion(bot, force=False):
 
 
 @sopel.module.commands('tuer', 'door')
+@sopel.module.require_privmsg("Sprich mich lieber in ner Query an ;)")
 def doorState(bot, trigger):
-    if not trigger.is_privmsg:
-        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
-        return
-
     global space_status
     y = space_status.get("state").get("open")
     if y is not None:
@@ -122,16 +116,13 @@ def doorState(bot, trigger):
 
 
 @sopel.module.commands('temp', 'temperatur')
+@sopel.module.require_privmsg("Sprich mich lieber in ner Query an ;)")
 def temp(bot, trigger):
     temperature(bot, '', "lounge")
     # temperature(bot, 'workshop_', "kino");
 
 
 def temperature(bot, room, room_name):
-    if not trigger.is_privmsg:
-        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
-        return
-
     global space_status
 
     if space_status is None:
@@ -154,11 +145,8 @@ def temperature(bot, room, room_name):
 
 
 @sopel.module.commands('users')
+@sopel.module.require_privmsg("Sprich mich lieber in ner Query an ;)")
 def users(bot, trigger):
-    if not trigger.is_privmsg:
-        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
-        return
-
     global space_status
     if space_status is None:
         bot.say("Space status is unbekannt")
@@ -184,11 +172,8 @@ def users(bot, trigger):
 
 
 @sopel.module.commands('status')
+@sopel.module.require_privmsg("Sprich mich lieber in ner Query an ;)")
 def space_status_all(bot, trigger):
-    if not trigger.is_privmsg:
-        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
-        return
-
     doorState(bot, trigger)
     users(bot, trigger)
     temp(bot, trigger)
@@ -196,10 +181,6 @@ def space_status_all(bot, trigger):
 
 @interval(60 * 60 * 24)
 def clear_status_counter(bot, force=False):
-    if not trigger.is_privmsg:
-        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
-        return
-
     last = bot.db.get_channel_value("#flipdot", "status_cnt") or datetime.datetime.now().month
     if datetime.datetime.now().month == last:
         return
@@ -224,10 +205,6 @@ def space_alarm(bot, trigger):
 @sopel.module.require_chanmsg(message="Dieser Befehl muss im #flipdot channel eingegeben werden")
 @sopel.module.require_privilege(sopel.module.VOICE, "Du darfst das nicht")
 def heat(bot, trigger):
-    if trigger.is_privmsg:
-        bot.msg(trigger.nick, "Sprich mich lieber in der Öffentlichkeit an ;)")
-        return
-
     global space_status
 
     can_names = {
@@ -273,20 +250,12 @@ def heat(bot, trigger):
 
 @sopel.module.commands('essen')
 def essen(bot, trigger):
-    if not trigger.is_privmsg:
-        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
-        return
-
     futter = bot.db.get_channel_value("#flipdot", "hapahapa") or "nix"
     bot.say(futter)
 
 
 @sopel.module.commands('kochen')
 def kochen(bot, trigger):
-    if not trigger.is_privmsg:
-        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
-        return
-
     if trigger.group(2) is None or len(trigger.group(2).split(" ")) < 2:
         bot.say("Bitte gib den Kochstatus nach folgendem Schmema ein, [Koch/Ansprechpartner] [Mahlzeit/Essen]")
     else:
@@ -298,10 +267,6 @@ def kochen(bot, trigger):
 
 @sopel.module.commands('futter')
 def futter(bot, trigger):
-    if not trigger.is_privmsg:
-        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
-        return
-
     api_key = bot.config.spacestatus.forum_key
     res = requests.get(
         'https://forum.flipdot.org/latest.json?api_key=' + api_key + '&api_username=flipbot',
