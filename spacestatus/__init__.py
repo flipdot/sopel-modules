@@ -96,6 +96,10 @@ def motion_detect(bot, force=False):
 
 @sopel.module.commands('bewegungsmelder')
 def motion(bot, force=False):
+    if not trigger.is_privmsg:
+        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
+        return
+
     global last_motion
     if last_motion is None:
         bot.say("Es wurde noch keine Bewegung erkannt")
@@ -105,6 +109,10 @@ def motion(bot, force=False):
 
 @sopel.module.commands('tuer', 'door')
 def doorState(bot, trigger):
+    if not trigger.is_privmsg:
+        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
+        return
+
     global space_status
     y = space_status.get("state").get("open")
     if y is not None:
@@ -120,6 +128,10 @@ def temp(bot, trigger):
 
 
 def temperature(bot, room, room_name):
+    if not trigger.is_privmsg:
+        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
+        return
+
     global space_status
 
     if space_status is None:
@@ -143,6 +155,10 @@ def temperature(bot, room, room_name):
 
 @sopel.module.commands('users')
 def users(bot, trigger):
+    if not trigger.is_privmsg:
+        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
+        return
+
     global space_status
     if space_status is None:
         bot.say("Space status is unbekannt")
@@ -170,13 +186,8 @@ def users(bot, trigger):
 @sopel.module.commands('status')
 def space_status_all(bot, trigger):
     if not trigger.is_privmsg:
-        status_cnt = bot.db.get_nick_value(trigger.nick, 'status_cnt') or 0
-        if status_cnt > 10:
-            bot.msg(trigger.nick, "Wir kennen uns doch schon so lange, sprich mich lieber per PM an :o)")
-            return
-
-        status_cnt += 1
-        bot.db.set_nick_value(trigger.nick, 'status_cnt', status_cnt)
+        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
+        return
 
     doorState(bot, trigger)
     users(bot, trigger)
@@ -185,6 +196,10 @@ def space_status_all(bot, trigger):
 
 @interval(60 * 60 * 24)
 def clear_status_counter(bot, force=False):
+    if not trigger.is_privmsg:
+        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
+        return
+
     last = bot.db.get_channel_value("#flipdot", "status_cnt") or datetime.datetime.now().month
     if datetime.datetime.now().month == last:
         return
@@ -209,6 +224,10 @@ def space_alarm(bot, trigger):
 @sopel.module.require_chanmsg(message="Dieser Befehl muss im #flipdot channel eingegeben werden")
 @sopel.module.require_privilege(sopel.module.VOICE, "Du darfst das nicht")
 def heat(bot, trigger):
+    if trigger.is_privmsg:
+        bot.msg(trigger.nick, "Sprich mich lieber in der Öffentlichkeit an ;)")
+        return
+
     global space_status
 
     can_names = {
@@ -254,12 +273,20 @@ def heat(bot, trigger):
 
 @sopel.module.commands('essen')
 def essen(bot, trigger):
+    if not trigger.is_privmsg:
+        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
+        return
+
     futter = bot.db.get_channel_value("#flipdot", "hapahapa") or "nix"
     bot.say(futter)
 
 
 @sopel.module.commands('kochen')
 def kochen(bot, trigger):
+    if not trigger.is_privmsg:
+        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
+        return
+
     if trigger.group(2) is None or len(trigger.group(2).split(" ")) < 2:
         bot.say("Bitte gib den Kochstatus nach folgendem Schmema ein, [Koch/Ansprechpartner] [Mahlzeit/Essen]")
     else:
@@ -271,6 +298,10 @@ def kochen(bot, trigger):
 
 @sopel.module.commands('futter')
 def futter(bot, trigger):
+    if not trigger.is_privmsg:
+        bot.msg(trigger.nick, "Sprich mich lieber in ner Query an ;)")
+        return
+
     api_key = bot.config.spacestatus.forum_key
     res = requests.get(
         'https://forum.flipdot.org/latest.json?api_key=' + api_key + '&api_username=flipbot',
