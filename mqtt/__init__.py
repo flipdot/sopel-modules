@@ -13,7 +13,7 @@ def on_mqtt_connect(client, userdata, flags, result):
     client.subscribe(MQTT_TOPIC)
 
 def on_mqtt_message(client, userdata, msg):
-    msg_obj = json.loads(msg.payload)
+    msg_obj = json.loads(msg.payload.decode("utf-8"))
 
     for c in bot.config.core.channels:
         bot.msg(c, msg_obj["content"])
