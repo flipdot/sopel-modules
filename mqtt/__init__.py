@@ -7,6 +7,12 @@ import paho.mqtt.client as mqtt
 MQTT_HOST = "rail.fd"
 MQTT_TOPIC = "actors/all/flipbot_send"
 
+#   For more information
+#   https://github.com/myano/jenni/wiki/IRC-String-Formatting
+COLOR_IOT = "\x0307"  # orange
+COLOR_RESET = "\x0F"
+COLOR_PREFIX = "[{}iot{}]".format(COLOR_IOT, COLOR_RESET)
+
 bot = None
 
 def on_mqtt_connect(client, userdata, flags, result):
@@ -14,9 +20,10 @@ def on_mqtt_connect(client, userdata, flags, result):
 
 def on_mqtt_message(client, userdata, msg):
     msg_obj = json.loads(msg.payload.decode("utf-8"))
+    msg = "{} {}".format(COLOR_PREFIX, msg_obj["content"])
 
     for c in bot.config.core.channels:
-        bot.msg(c, msg_obj["content"])
+        bot.msg(c, msg)
 
 def mqtt_main():
     client = mqtt.Client()
