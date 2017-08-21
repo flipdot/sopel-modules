@@ -15,8 +15,10 @@ COLOR_PREFIX = "[{}iot{}]".format(COLOR_IOT, COLOR_RESET)
 
 bot = None
 
+
 def on_mqtt_connect(client, userdata, flags, result):
     client.subscribe(MQTT_TOPIC)
+
 
 def on_mqtt_message(client, userdata, msg):
     msg_obj = json.loads(msg.payload.decode("utf-8"))
@@ -25,6 +27,7 @@ def on_mqtt_message(client, userdata, msg):
     for c in bot.config.core.channels:
         bot.msg(c, msg)
 
+
 def mqtt_main():
     client = mqtt.Client()
     client.on_connect = on_mqtt_connect
@@ -32,6 +35,7 @@ def mqtt_main():
 
     client.connect(MQTT_HOST)
     client.loop_forever()
+
 
 def setup(b):
     global bot
