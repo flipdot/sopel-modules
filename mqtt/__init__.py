@@ -4,7 +4,7 @@ from threading import Thread
 import sopel
 import paho.mqtt.client as mqtt
 
-MQTT_HOST = "rail.fd"
+MQTT_HOST = "power-pi.fd"
 MQTT_TOPIC = "actors/all/flipbot_send"
 
 #   For more information
