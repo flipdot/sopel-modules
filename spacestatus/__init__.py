@@ -95,7 +95,7 @@ def motion_detect(bot, force=False):
         last_motion = time.strftime("%a %H:%M:%S")
 
 @sopel.module.commands('bewegungsmelder')
-@sopel.module.require_privmsg("Sprich mich lieber in ner Query an ;)")
+
 def motion(bot, force=False):
     global last_motion
     if last_motion is None:
@@ -105,7 +105,7 @@ def motion(bot, force=False):
 
 
 @sopel.module.commands('tuer', 'door')
-@sopel.module.require_privmsg("Sprich mich lieber in ner Query an ;)")
+
 def doorState(bot, trigger):
     global space_status
     y = space_status.get("state").get("open")
@@ -116,7 +116,7 @@ def doorState(bot, trigger):
 
 
 @sopel.module.commands('temp', 'temperatur')
-@sopel.module.require_privmsg("Sprich mich lieber in ner Query an ;)")
+
 def temp(bot, trigger):
     temperature(bot, '', "lounge")
     # temperature(bot, 'workshop_', "kino");
@@ -145,7 +145,7 @@ def temperature(bot, room, room_name):
 
 
 @sopel.module.commands('users')
-@sopel.module.require_privmsg("Sprich mich lieber in ner Query an ;)")
+
 def users(bot, trigger):
     global space_status
     if space_status is None:
@@ -172,7 +172,6 @@ def users(bot, trigger):
 
 
 @sopel.module.commands('status')
-@sopel.module.require_privmsg("Sprich mich lieber in ner Query an ;)")
 def space_status_all(bot, trigger):
     doorState(bot, trigger)
     users(bot, trigger)
