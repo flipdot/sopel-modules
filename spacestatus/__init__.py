@@ -19,7 +19,6 @@ import sqlite3
 import datetime
 
 INTERVAL = 60
-MOTION_DETECT_INTERVAL = 3
 space_status = None
 last_motion = None
 mqtt_client = None
@@ -174,14 +173,6 @@ def clear_status_counter(bot, force=False):
     db.close()
     bot.db.set_channel_value("#flipdot", "status_cnt", datetime.datetime.now().month)
 
-
-@sopel.module.commands('alarm')
-def space_alarm(bot, trigger):
-    r = requests.post("http://rail.fd:8080/Hutschiene/RedLight", data={'blink': 'true'})
-    if r.status_code is 200:
-        bot.say("done")
-    else:
-        bot.say("Da ist ein Fehler aufgetreten")
 
 
 @sopel.module.commands('heizen', 'heatup', 'heizung')
