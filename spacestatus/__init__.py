@@ -44,12 +44,6 @@ def setup(bot):
     mqtt_client.loop_start()
 
     space_status = update_space_status()
-    try:
-        with open("/sys/class/gpio/export", "r+") as f:
-            f.write("18")
-            f.flush()
-    except:
-        pass
 
 
 def update_space_status():
@@ -91,24 +85,6 @@ def co2(bot, force=False):
     if wert and wert > 2400:
         for c in bot.config.core.channels:
             bot.msg(c, "Wir störben!!1! Mach sofort ein Fenster auf, der CO2 Wert ist zu hoch.")
-
-@interval(MOTION_DETECT_INTERVAL)
-def motion_detect(bot, force=False):
-    global last_motion
-    fd = open("/sys/class/gpio/gpio18/value", "r")
-    tmp = fd.read(1)
-    fd.close()
-    if tmp == 0 or tmp == '0' or tmp == "0":
-        last_motion = time.strftime("%a %H:%M:%S")
-
-@sopel.module.commands('bewegungsmelder')
-@sopel.module.require_privmsg("Sprich mich lieber in ner Query an ;)")
-def motion(bot, force=False):
-    global last_motion
-    if last_motion is None:
-        bot.say("Es wurde noch keine Bewegung erkannt")
-    else:
-        bot.say("Zuletzt bewegte sich etwas im Space am {:s}".format(last_motion))
 
 
 @sopel.module.commands('tuer', 'door')
