@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import sopel
 from sopel.module import commands, interval
 from threading import Thread
+import paho.mqtt.client as mqtt
 
 from .webserver import run_server
 
@@ -21,6 +22,7 @@ INTERVAL = 60
 MOTION_DETECT_INTERVAL = 3
 space_status = None
 last_motion = None
+mqtt_client = None
 
 mampf = "hallo"
 datum = "date"
@@ -31,10 +33,15 @@ CO2 = 3600
 def setup(bot):
     global space_status
     global app
+    global mqtt_client
 
     webserver_thread = Thread(target=run_server, args=(bot,))
     webserver_thread.daemon = True
     webserver_thread.start()
+
+    mqtt_client = mqtt.Client()
+    mqtt_client.connect("power-pi.fd")
+    mqtt_client.loop_start()
 
     space_status = update_space_status()
     try:
@@ -207,9 +214,12 @@ def space_alarm(bot, trigger):
 def heat(bot, trigger):
     global space_status
 
-    can_names = {
-        #    "kino" : "thaemin",
-        "chill": "theemin"
+    bot.say("Kaputt")
+
+    mqtt_names = {
+        "raum4": "f376db",
+        "lounge": "f391d8",
+        "m-shop": "4c857f"
     }
     cmd = trigger.group(2) or "20 all"
     cmds = cmd.split(" ")
@@ -229,20 +239,19 @@ def heat(bot, trigger):
 
     rooms = []
     if room == "all":
-        for k, v in can_names.items():
+        for k, v in mqtt_names.items():
             rooms.append(k)
     else:
-        can_name = can_names[room]
-        if not can_name:
+        mqtt_name = mqtt_names[room]
+        if not mqtt_name:
             bot.say("{} existiert nicht".format(room))
             return
         rooms.append(room)
 
     for r in rooms:
         try:
-            resp = requests.get("http://rail.fd:8080/CanBus/{:s}/SetTargetTemp?temp={:d}".format(can_names[r], temp))
-            if resp.status_code == 200 and resp.text.startswith("OK"):
-                bot.say("Stelle Heizung({:s}) auf {:.2f}°C".format(r, temp))
+            mqtt_client.publish("sensors/heater/{}/fenster/setpoint".format(mqtt_names[r]), temp) 
+            bot.say("Stelle Heizung({:s}) auf {:.2f}°C".format(r, temp))
         except Exception as e:
             print(e)
             bot.say("Da ist ein Fehler aufgetreten ({:s})".format(r))
