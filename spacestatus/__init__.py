@@ -62,6 +62,16 @@ def get_sensor_val(name, field='value'):
         return None
 
 
+def get_sensor_location(type, location, state=None):
+    global space_status
+    if state is None:
+        state = space_status
+
+    locations = state['state']['sensors'][type]
+    for obj in locations:
+        if obj['location'] == location:
+            return obj
+    return None
 
 @interval(INTERVAL)
 def update(bot, force=False):
@@ -75,7 +85,14 @@ def update(bot, force=False):
         return
     if new_state['open'] != space_status['open']:
         for c in bot.config.core.channels:
-            bot.msg(c, "Der Space wurde {}".format("geoeffnet" if new_state['open'] else "geschlossen"))
+            bot.msg(c, "Der Space wurde {}".format("hochgefahren" if new_state['open'] else "heruntergefahren"))
+
+    new_locked = get_sensor_location('door', 'locked', new_state)
+    old_locked = get_sensor_location('door', 'locked')
+    if old_locked != new_locked and new_locked:
+        for c in bot.config.core.channels:
+            bot.msg(c, "Der Space wurde {}".format("abgeschlossen" if new_locked['value'] else "aufgeschlossen"))
+
     space_status = new_state
 
 @interval(CO2)
@@ -215,7 +232,7 @@ def heat(bot, trigger):
 
     for r in rooms:
         try:
-            mqtt_client.publish("sensors/heater/{}/fenster/setpoint".format(mqtt_names[r]), temp) 
+            mqtt_client.publish("sensors/heater/{}/fenster/setpoint".format(mqtt_names[r]), temp)
             bot.say("Stelle Heizung({:s}) auf {:.2f}°C".format(r, temp))
         except Exception as e:
             print(e)
