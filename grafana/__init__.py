@@ -84,12 +84,12 @@ def webhook():
     try:
         json = request.json
         msgs = ["{} {}{}{}: {}".format(COLOR_PREFIX, COLOR_BOLD, json.get('ruleName'), COLOR_RESET, json.get('message'))]
-        
+
         # Only show alerts, not "OK"s and not "no data"s
         # if json.get('state') == 'ok':
         if json.get('state') != 'alerting':
             abort(500)
-        
+
         # Add numeric reason if available
         if json.get('evalMatches'):
             matches = ''
@@ -98,7 +98,7 @@ def webhook():
                     matches += ', '
                 matches += '{}: {}'.format(item.get('metric'), item.get('value'))
             msgs[0] = "{} ({})".format(msgs[0], matches)
-            
+
         # Add image URL if available
         if json.get('imageUrl'):
             msgs.append("{}{}".format("        ", json.get('imageUrl')))
@@ -106,13 +106,13 @@ def webhook():
         sys.stdout.write("\n\nERROR:\n{}\n\n".format(e))
         sys.stdout.flush()
         abort(500)
-    
+
     for msg in msgs:
         # sys.stdout.write("\n\nMESSAGE:\n{}\n\n".format(msg))
         # sys.stdout.flush()
         bot_say(msg)
     return "OK\n"
-    
+
 
 
 
