@@ -89,7 +89,9 @@ def update(bot, force=False):
 
     new_locked = get_sensor_location('door', 'locked', new_state)
     old_locked = get_sensor_location('door', 'locked')
-    if old_locked != new_locked and new_locked:
+    if not new_locked:
+        return
+    if old_locked['value'] != new_locked['value']:
         for c in bot.config.core.channels:
             bot.msg(c, "Der Space wurde {}".format("abgeschlossen" if new_locked['value'] else "aufgeschlossen"))
 
