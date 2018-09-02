@@ -1,24 +1,39 @@
-# Gives voice to everybody who is on the channel longer than up to two times
-# INTERVAL seconds.
-#
-# See here for more information:
-# http://docs.dal.net/docs/modes.html#2.22
-
 import sopel
 from time import sleep
 from sopel.module import interval, OP, VOICE
+import threading
 
 INTERVAL = 300
 CHANNEL = '#flipdot'
-last_privs = None
+
+auto_voice_threads = {}
 
 
-@sopel.module.interval(INTERVAL)
-def auto_voice(bot, force=False):
-    global last_privs
-    if not last_privs:
-        last_privs = bot.privileges
-    for nick, priv in bot.privileges[CHANNEL].items():
-        if nick in last_privs[CHANNEL] and bot.privileges[CHANNEL][nick] < VOICE:
-            bot.write(['MODE', CHANNEL, '+v', nick])
-    last_privs = bot.privileges
+def set_voice(bot, nick):
+    global auto_voice_threads
+    bot.write(['MODE', CHANNEL, '+v', nick])
+    if nick in auto_voice_threads.keys():
+        auto_voice_threads.pop(nick)
+
+
+
+@sopel.module.rule('.*')
+@sopel.module.event("JOIN")
+def auto_voice_join(bot, trigger):
+    global auto_voice_threads
+    if trigger.host.startswith("gateway/shell/matrix.org"):
+        set_voice(bot, trigger.nick)
+    else:
+        auto_voice_threads[trigger.nick] = threading.Timer(INTERVAL, set_voice, [bot, trigger.nick])
+        auto_voice_threads[trigger.nick].start()
+
+
+@sopel.module.rule('.*')
+@sopel.module.event("PART", "QUIT")
+def auto_voice_quit(bot, trigger):
+    global auto_voice_threads
+    if trigger.nick in auto_voice_threads.keys():
+        auto_voice_threads[trigger.nick].cancel()
+        auto_voice_threads.pop(trigger.nick)
+
+
