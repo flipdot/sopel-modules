@@ -87,15 +87,18 @@ def update(bot, force=False):
         for c in bot.config.core.channels:
             bot.msg(c, "Der Space wurde {}".format("hochgefahren" if new_state['open'] else "heruntergefahren"))
 
-    new_locked = get_sensor_location('door', 'locked', new_state)
-    old_locked = get_sensor_location('door', 'locked')
-    if not new_locked:
-        return
-    if old_locked['value'] != new_locked['value']:
-        for c in bot.config.core.channels:
-            bot.msg(c, "Der Space wurde {}".format("abgeschlossen" if new_locked['value'] else "aufgeschlossen"))
-
-    space_status = new_state
+    try:
+        new_locked = get_sensor_location('door', 'locked', new_state)
+        old_locked = get_sensor_location('door', 'locked')
+        if not new_locked:
+            return
+        if old_locked['value'] != new_locked['value']:
+            for c in bot.config.core.channels:
+                bot.msg(c, "Der Space wurde {}".format("abgeschlossen" if new_locked['value'] else "aufgeschlossen"))
+    except KeyError:
+        print("missing 'door' sensor in fd api")
+    finally:
+        space_status = new_state
 
 @interval(CO2)
 def co2(bot, force=False):
