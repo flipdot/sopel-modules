@@ -10,6 +10,7 @@ from .webserver import run_server
 from sopel import module
 # from socketIO_client import SocketIO
 
+import logging
 import time
 import requests
 import json
@@ -22,6 +23,8 @@ INTERVAL = 60
 space_status = None
 last_motion = None
 mqtt_client = None
+
+logger = logging.getLogger(__name__)
 
 mampf = "hallo"
 datum = "date"
@@ -48,10 +51,14 @@ def setup(bot):
 def update_space_status():
     global space_status
 
-    r = requests.get("http://api.flipdot.org")
-    if r.status_code == 200:
-        return r.json()
-    else:
+    try:
+        r = requests.get("https://api.flipdot.org", timeout=5)
+        if r.status_code == 200 and r.json().get("api", "0") == "0.13":
+            return r.json()
+        else:
+            return space_status
+    except:
+        logger.exception("Failed to fetch spaceapi")
         return space_status
 
 def get_sensor_val(name, field='value'):
