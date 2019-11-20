@@ -87,9 +87,13 @@ def update(bot, force=False) -> None:
     if space_status is None:
         space_status = new_state
         return
+
     if new_state['open'] != space_status['open']:
+
+        new_power_status = ('🔌', 'hochgefahren') if new_state['open'] else ('⏸️', 'heruntergefahren')
+
         for c in bot.config.core.channels:
-            bot.msg(c, 'Der Space wurde {}'.format('hochgefahren' if new_state['open'] else 'heruntergefahren'))
+            bot.msg(c, f'{new_power_status[0]} Der Space wurde {new_power_status[1]}.')
 
     try:
         new_locked = get_sensor_location('door', 'locked', new_state)
@@ -97,8 +101,12 @@ def update(bot, force=False) -> None:
         if not new_locked:
             return
         if old_locked['value'] != new_locked['value']:
+
+            new_lock_state = ('🔐', 'abgeschlossen') if new_locked['value'] else ('🔓', 'aufgeschlossen')
+
             for c in bot.config.core.channels:
-                bot.msg(c, 'Der Space wurde {}'.format('abgeschlossen' if new_locked['value'] else 'aufgeschlossen'))
+                bot.msg(c, f'{new_lock_state[0]} Der Space wurde {new_lock_state[1]}.')
+
     except KeyError:
         print('missing \'door\' sensor in fd api')
     finally:
@@ -109,22 +117,21 @@ def co2(bot, force=False) -> None:
     co2_ppm = get_sensor_val('co2')
     if co2_ppm and co2_ppm > 2400:
         for c in bot.config.core.channels:
-            bot.msg(c, f'Wir störben!!1! Mach sofort ein Fenster auf, der CO2-Wert ist zu hoch ({co2_ppm}).')
+            bot.msg(c, f'Wir störben!!1! Mach sofort ein Fenster auf, der CO2-Wert ist zu hoch ({co2_ppm} ppm). 🏭')
 
 
 @sopel.module.commands('tuer', 'door')
-
 def doorState(bot, trigger) -> None:
     global space_status
     y = space_status.get('state').get('open')
     if y is not None:
-        bot.say('Space ist {}'.format('auf' if y else 'zu'))
+        status = 'auf' if y else 'zu'
+        bot.say(f'Space ist {status}')
     else:
-        bot.say('Space status is unbekannt')
+        bot.say('Space-Status is unbekannt :(')
 
 
 @sopel.module.commands('temp', 'temperatur')
-
 def temp(bot, trigger) -> None:
     temperature(bot, '', 'lounge')
     # temperature(bot, 'workshop_', 'kino');
@@ -141,14 +148,16 @@ def temperature(bot, room: str, room_name: str) -> None:
         state = heiz['value']
         locate = heiz['location']
 
-        if state > 18.0:
+        if state > 28.0:
+            zustand = 'heiß 🔥'
+        elif state > 18.0:
             zustand = 'warm'
         elif state > 10.0:
             zustand = 'kalt'
         else:
-            zustand = 'arschkalt'
+            zustand = 'arschkalt ❄️'
 
-        bot.say('In {} ist es aktuell {:.2f}°C {}. '.format(locate, state, zustand))
+        bot.say(f'In {locate} ist es aktuell {state:.2f}°C {zustand}.')
 
 
 
@@ -171,11 +180,11 @@ def users(bot, trigger) -> None:
     known = ', '.join(x for x in names)
 
     if user_count is 0:
-        bot.say('Es sind im Space: {}'.format(known))
+        bot.say(f'Es sind im Space: {known}')
     elif len(names) is 0:
-        bot.say('Es sind {} unbekannte im Space'.format(user_count))
+        bot.say(f'Es sind {user_count} unbekannte im Space')
     else:
-        bot.say('Es sind {} unbekannte und {} im Space'.format(user_count, known))
+        bot.say(f'Es sind {user_count} unbekannte und {known} im Space')
 
 
 @sopel.module.commands('status')
@@ -191,6 +200,7 @@ def clear_status_counter(bot, force=False) -> None:
     if datetime.datetime.now().month == last:
         return
 
+    # TODO: Use with here? Does it work here?
     db = bot.db.connect()
     db.execute('DELETE FROM nick_values WHERE nick_values.key = \'status_cnt\'')
     db.commit()
@@ -199,6 +209,7 @@ def clear_status_counter(bot, force=False) -> None:
 
 
 
+# TODO: Does this even still work? Remove it if it doesn't.
 @sopel.module.commands('heizen', 'heatup', 'heizung')
 @sopel.module.require_chanmsg(message='Dieser Befehl muss im #flipdot channel eingegeben werden')
 @sopel.module.require_privilege(sopel.module.VOICE, 'Du darfst das nicht')
@@ -235,17 +246,17 @@ def heat(bot, trigger) -> None:
     else:
         mqtt_name = mqtt_names[room]
         if not mqtt_name:
-            bot.say('{} existiert nicht'.format(room))
+            bot.say(f'{room} existiert nicht')
             return
         rooms.append(room)
 
     for r in rooms:
         try:
-            mqtt_client.publish('sensors/heater/{}/fenster/setpoint'.format(mqtt_names[r]), temp)
-            bot.say('Stelle Heizung({:s}) auf {:.2f}°C'.format(r, temp))
+            mqtt_client.publish(f'sensors/heater/{mqtt_names[r]}/fenster/setpoint', temp)
+            bot.say(f'Stelle Heizung({r:s}) auf {temp:.2f}°C')
         except Exception as e:
             print(e)
-            bot.say('Da ist ein Fehler aufgetreten ({:s})'.format(r))
+            bot.say(f'Da ist ein Fehler aufgetreten ({r:s})')
 
 
 @sopel.module.commands('essen')
@@ -260,7 +271,7 @@ def kochen(bot, trigger) -> None:
         bot.say('Bitte gib den Kochstatus nach folgendem Schmema ein, [Koch/Ansprechpartner] [Mahlzeit/Essen]')
     else:
         x = trigger.group(2).split(' ')
-        msg = '{} kocht {}'.format(x[0], x[1])
+        msg = f'{x[0]} kocht {x[1]}'
         bot.db.set_channel_value('#flipdot', 'hapahapa', msg)
         bot.say('done')
 
@@ -269,8 +280,9 @@ def kochen(bot, trigger) -> None:
 def futter(bot, trigger) -> None:
     api_key = bot.config.spacestatus.forum_key
     res = requests.get(
-        'https://forum.flipdot.org/latest.json?api_key=' + api_key + '&api_username=flipbot',
-        headers={'Accept': 'application/json'})
+        f'https://forum.flipdot.org/latest.json?api_key={api_key}&api_username=flipbot',
+        headers={'Accept': 'application/json'},
+    )
     topics = res.json()
 
     cooking_category_id = 19  # 'Kochen & Essen'
