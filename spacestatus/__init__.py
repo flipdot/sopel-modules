@@ -1,5 +1,6 @@
 # coding=utf8
 from __future__ import absolute_import
+from typing import Optional, Mapping
 import sopel
 from sopel.module import commands, interval
 from threading import Thread
@@ -44,7 +45,7 @@ def setup(bot):
     space_status = update_space_status()
 
 
-def update_space_status():
+def update_space_status() -> Mapping:
     global space_status
 
     try:
@@ -57,7 +58,7 @@ def update_space_status():
         logger.exception('Failed to fetch spaceapi')
         return space_status
 
-def get_sensor_val(name, field='value'):
+def get_sensor_val(name: str, field='value') -> Optional[float]:
     global space_status
     try:
         return space_status['state']['sensors'][name][0][field]
@@ -65,19 +66,19 @@ def get_sensor_val(name, field='value'):
         return None
 
 
-def get_sensor_location(type, location, state=None):
+def get_sensor_location(sensor_type: str, location: str, state=None) -> Optional[Mapping]:
     global space_status
     if state is None:
         state = space_status
 
-    locations = state['state']['sensors'][type]
+    locations = state['state']['sensors'][sensor_type]
     for obj in locations:
         if obj['location'] == location:
             return obj
     return None
 
 @interval(INTERVAL)
-def update(bot, force=False):
+def update(bot, force=False) -> None:
     global space_status
 
     new_state = update_space_status()
@@ -104,16 +105,16 @@ def update(bot, force=False):
         space_status = new_state
 
 @interval(CO2)
-def co2(bot, force=False):
-    wert = get_sensor_val('co2')
-    if wert and wert > 2400:
+def co2(bot, force=False) -> None:
+    co2_ppm = get_sensor_val('co2')
+    if co2_ppm and co2_ppm > 2400:
         for c in bot.config.core.channels:
-            bot.msg(c, 'Wir störben!!1! Mach sofort ein Fenster auf, der CO2 Wert ist zu hoch.')
+            bot.msg(c, f'Wir störben!!1! Mach sofort ein Fenster auf, der CO2-Wert ist zu hoch ({co2_ppm}).')
 
 
 @sopel.module.commands('tuer', 'door')
 
-def doorState(bot, trigger):
+def doorState(bot, trigger) -> None:
     global space_status
     y = space_status.get('state').get('open')
     if y is not None:
@@ -124,12 +125,12 @@ def doorState(bot, trigger):
 
 @sopel.module.commands('temp', 'temperatur')
 
-def temp(bot, trigger):
+def temp(bot, trigger) -> None:
     temperature(bot, '', 'lounge')
     # temperature(bot, 'workshop_', 'kino');
 
 
-def temperature(bot, room, room_name):
+def temperature(bot, room: str, room_name: str) -> None:
     global space_status
 
     if space_status is None:
@@ -152,7 +153,7 @@ def temperature(bot, room, room_name):
 
 
 @sopel.module.commands('users')
-def users(bot, trigger):
+def users(bot, trigger) -> None:
     global space_status
     if space_status is None:
         bot.say('Space status is unbekannt')
@@ -178,14 +179,14 @@ def users(bot, trigger):
 
 
 @sopel.module.commands('status')
-def space_status_all(bot, trigger):
+def space_status_all(bot, trigger) -> None:
     doorState(bot, trigger)
     users(bot, trigger)
     temp(bot, trigger)
 
 
 @interval(60 * 60 * 24)
-def clear_status_counter(bot, force=False):
+def clear_status_counter(bot, force=False) -> None:
     last = bot.db.get_channel_value('#flipdot', 'status_cnt') or datetime.datetime.now().month
     if datetime.datetime.now().month == last:
         return
@@ -201,7 +202,7 @@ def clear_status_counter(bot, force=False):
 @sopel.module.commands('heizen', 'heatup', 'heizung')
 @sopel.module.require_chanmsg(message='Dieser Befehl muss im #flipdot channel eingegeben werden')
 @sopel.module.require_privilege(sopel.module.VOICE, 'Du darfst das nicht')
-def heat(bot, trigger):
+def heat(bot, trigger) -> None:
     global space_status
 
     bot.say('Kaputt')
@@ -248,13 +249,13 @@ def heat(bot, trigger):
 
 
 @sopel.module.commands('essen')
-def essen(bot, trigger):
+def essen(bot, trigger) -> None:
     futter = bot.db.get_channel_value('#flipdot', 'hapahapa') or 'nix'
     bot.say(futter)
 
 
 @sopel.module.commands('kochen')
-def kochen(bot, trigger):
+def kochen(bot, trigger) -> None:
     if trigger.group(2) is None or len(trigger.group(2).split(' ')) < 2:
         bot.say('Bitte gib den Kochstatus nach folgendem Schmema ein, [Koch/Ansprechpartner] [Mahlzeit/Essen]')
     else:
@@ -265,7 +266,7 @@ def kochen(bot, trigger):
 
 
 @sopel.module.commands('futter')
-def futter(bot, trigger):
+def futter(bot, trigger) -> None:
     api_key = bot.config.spacestatus.forum_key
     res = requests.get(
         'https://forum.flipdot.org/latest.json?api_key=' + api_key + '&api_username=flipbot',
