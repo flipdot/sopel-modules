@@ -26,10 +26,6 @@ mqtt_client = None
 
 logger = logging.getLogger(__name__)
 
-mampf = "hallo"
-datum = "date"
-name = "horst"
-
 CO2 = 3600
 
 def setup(bot):
