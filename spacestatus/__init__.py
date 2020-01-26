@@ -144,7 +144,7 @@ def temperature(bot, room: str, room_name: str) -> None:
         bot.say('Space status ist unbekannt')
         return
 
-    for heiz in space_status.get('state')['sensors']['temperature']:
+    for heiz in space_status.get('state')['sensors'].get('temperature', []):
         state = heiz['value']
         locate = heiz['location']
 
