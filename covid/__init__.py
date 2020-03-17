@@ -1,8 +1,11 @@
 """Loads stats on Covid-19 for the city of Kassel using ArcGIS' API"""
 import json
+import locale
 import re
 import requests
 
+from bs4 import BeautifulSoup
+from datetime import datetime
 from sopel import module
 from sopel.config.types import StaticSection, ValidatedAttribute
 
@@ -26,27 +29,36 @@ KEY_TIME = 'Aktualisierung'
 
 class CovidSection(StaticSection):
     announce_channel = ValidatedAttribute('announce_channel', default='#flipdot-covid')
-    url = ValidatedAttribute('url', default='https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/Kreisgrenzen_2018_mit_Einwohnerzahl/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&geometry=%7B%22xmin%22%3A1022582.0406873999%2C%22ymin%22%3A6640566.110841996%2C%22xmax%22%3A1071425.301761622%2C%22ymax%22%3A6707907.132761228%2C%22spatialReference%22%3A%7B%22wkid%22%3A102100%2C%22latestWkid%22%3A3857%7D%7D&geometryType=esriGeometryEnvelope&inSR=102100&outFields=*&orderByFields=Fallzahlen%20desc&outSR=102100&resultOffset=0&resultRecordCount=1000')
+    url = ValidatedAttribute('url', default='https://kassel.de/coronavirus')
     cases_default = ValidatedAttribute('cases_default', default={"SK Kassel": {"Aktualisierung": 0, "Fallzahlen": 0, "Death": 0}, "LK Kassel": {"Aktualisierung": 0, "Fallzahlen": 0, "Death": 0}})
 
 
 def update_check(cases, update_raw):
-    update_required = False
-    update_data = {}
-    for u in update_raw:
-        attr = u.get('attributes')
-        district = attr.get('RKI_Kreis')
-        if district in cases.keys():
-            if attr.get(KEY_TIME) <= cases[district].get(KEY_TIME):
-                continue
-            update_required = True
-            update_data[district] = {}
-            # Store only requested data
-            for k, v in attr.items():
-                if k not in cases[district].keys():
-                    continue
-                update_data[district][k] = v
-    return update_required, update_data
+    locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
+    soup = BeautifulSoup(update_raw, 'html.parser')
+    ts_str = soup.find('h1', 'SP-Headline--paragraph').text
+    ts_new = datetime.strptime(ts_str, 'Stand: %d. %B %Y; %H Uhr').strftime('%s')
+    k = [e.text for e in soup.table.find_all('strong')]
+    l = len(k)
+    v_raw = soup.table.find_all('td')[l:]
+    v_pre = [(v_raw[i * l].text, v_raw[(i + 1) * l - 1].text) for i in range(len(v_raw) // l)]
+    ts_old = cases[list(cases.keys())[0]].get(KEY_TIME)
+    if int(ts_old) < int(ts_new):
+        update_required = True
+    else:
+        update_required = False
+    return update_required, {
+        'SK Kassel': {
+            'Aktualisierung': ts_new,
+            'Fallzahlen': v_pre[0][1],
+            'Death': v_pre[0][2] if len(v_pre[0]) > 2 else 0,
+        },
+        'LK Kassel': {
+            'Aktualisierung': ts_new,
+            'Fallzahlen': v_pre[1][1],
+            'Death': v_pre[1][2] if len(v_pre[1]) > 2 else 0,
+        },
+    }
 
 
 def update_repr(prefix, update_data_pre, add_prefix=False):
@@ -84,7 +96,7 @@ def covid_update(bot, dest=None, update_forced=False):
     req = requests.get(bot.config.covid.url)
     if req.status_code != 200:
         raise ConnectionError("Could not download covid data.")
-    update_raw = req.json()['features']
+    update_raw = req.text
     update_required, update_data = update_check(cases, update_raw)
     if not update_required and not update_forced:
         print(f"{PREFIX} No update...")
