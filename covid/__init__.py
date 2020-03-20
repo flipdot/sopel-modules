@@ -41,7 +41,8 @@ def update_check(cases, update_raw):
     k = [e.text for e in soup.table.find_all('strong')]
     l = len(k)
     v_raw = soup.table.find_all('td')[l:]
-    v_pre = [(v_raw[i * l].text, v_raw[(i + 1) * l - 1].text) for i in range(len(v_raw) // l)]
+    s = len(v_raw) // l
+    v_pre = {v_raw[i * l].text: v_raw[i * l + 1:(i + 1) * l] for i in range(s)}
     ts_old = cases[list(cases.keys())[0]].get(KEY_TIME)
     if int(ts_old) < int(ts_new):
         update_required = True
@@ -50,13 +51,17 @@ def update_check(cases, update_raw):
     return update_required, {
         'SK Kassel': {
             'Aktualisierung': ts_new,
-            'Fallzahlen': v_pre[0][1],
-            'Death': v_pre[0][2] if len(v_pre[0]) > 2 else 0,
+            'Fallzahlen': v_pre['Stadt Kassel'][0].text,
+            'Fallzahlen_rel': v_pre['Stadt Kassel'][1].text.replace(' ', ''),
+            'Death': v_pre['Stadt Kassel'][2] if len(v_pre['Stadt Kassel']) > 2 else 0,
+            # 'Death_rel': FIXME
         },
         'LK Kassel': {
             'Aktualisierung': ts_new,
-            'Fallzahlen': v_pre[1][1],
-            'Death': v_pre[1][2] if len(v_pre[1]) > 2 else 0,
+            'Fallzahlen': v_pre['Landkreis Kassel'][0].text,
+            'Fallzahlen_rel': v_pre['Landkreis Kassel'][1].text.replace(' ', ''),
+            'Death': v_pre['Landkreis Kassel'][2] if len(v_pre['Landkreis Kassel']) > 2 else 0,
+            # 'Death_rel': FIXME
         },
     }
 
@@ -82,10 +87,15 @@ def update_repr(prefix, update_data_pre, add_prefix=False):
             elif district == 'LK':
                 ret += 'Land'
             ret += ': '
-        ret += f"{data['Fallzahlen']} infiziert"
+        ret += f"{data['Fallzahlen']} "
+        cases_rel = data.get('Fallzahlen_rel')
+        if cases_rel:
+            ret += f"({cases_rel}) "
+        ret += "infiziert"
         death = data['Death']
         if death > 0:
             ret += f", {data['Death']} tot"
+        # death_rel = data['Death_rel'] # FIXME
     return ret
 
 
