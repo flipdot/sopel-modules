@@ -26,6 +26,11 @@ COLOR_PREFIX = '[%spsa%s]' % (COLOR_COVID, COLOR_RESET)
 PREFIX = '[psa]'
 KEY_TIME = 'Aktualisierung'
 
+TS_FORMATS = [
+    'Stand: %d. %B %Y; %H Uhr',
+    'Stand: %d. %B %Y; %H.%M Uhr',
+]
+
 
 class CovidSection(StaticSection):
     announce_channel = ValidatedAttribute('announce_channel', default='#flipdot-covid')
@@ -37,8 +42,16 @@ def update_check(cases, update_raw):
     locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
     soup = BeautifulSoup(update_raw, 'html.parser')
     ts_str = soup.find('h1', 'SP-Headline--paragraph').text
-    ts_new = datetime.strptime(ts_str, 'Stand: %d. %B %Y; %H Uhr').strftime('%s')
-    k = [e.text for e in soup.table.find_all('strong')]
+    ts_new = None
+    for ts_format in TS_FORMATS:
+        try:
+            ts_new = datetime.strptime(ts_str, ts_format).strftime('%s')
+            break
+        except:
+            pass
+    if ts_new is None:
+        raise SyntaxError(f"No time format could parse the raw string '{ts_str}'.")
+    k = [e.text for e in soup.thead.find_all('strong')]
     l = len(k)
     v_raw = soup.table.find_all('td')[l:]
     s = len(v_raw) // l
