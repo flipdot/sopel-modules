@@ -65,14 +65,14 @@ def update_check(cases, update_raw):
         'SK Kassel': {
             'Aktualisierung': ts_new,
             'Fallzahlen': v_pre['Stadt Kassel'][0].text,
-            'Fallzahlen_rel': v_pre['Stadt Kassel'][1].text.replace(' ', ''),
+            'Fallzahlen_rel': v_pre['Stadt Kassel'][1].text.split('(')[0].replace(' ', ''),
             'Death': v_pre['Stadt Kassel'][2] if len(v_pre['Stadt Kassel']) > 2 else 0,
             # 'Death_rel': FIXME
         },
         'LK Kassel': {
             'Aktualisierung': ts_new,
             'Fallzahlen': v_pre['Landkreis Kassel'][0].text,
-            'Fallzahlen_rel': v_pre['Landkreis Kassel'][1].text.replace(' ', ''),
+            'Fallzahlen_rel': v_pre['Landkreis Kassel'][1].text.split('(')[0].replace(' ', ''),
             'Death': v_pre['Landkreis Kassel'][2] if len(v_pre['Landkreis Kassel']) > 2 else 0,
             # 'Death_rel': FIXME
         },
