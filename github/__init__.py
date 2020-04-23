@@ -254,6 +254,13 @@ def handle_create_event(data):
 
 
 def handle_delete_event(data):
+    # Filter bad words
+    for k in IGNORED_NICK_PARTS:
+        if k in data['sender']['login']:
+            return
+    for k in IGNORED_BRANCH_NAMES:
+        if k in data['ref']:
+            return
     ref_type = data['ref_type']
     if ref_type == 'branch':
         bot_say("{} Branch {}{}{}/{} deleted by {}".format(COLOR_PREFIX,
