@@ -61,11 +61,13 @@ IGNORED_KEYWORDS = {
 }
 
 IGNORED_NICK_PARTS = {
+    'renovate',
     '[bot]',
 }
 
 IGNORED_BRANCH_NAMES = {
     'dependabot',
+    'renovate',
 }
 
 app = Flask(__name__)
