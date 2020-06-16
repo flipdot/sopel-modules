@@ -29,6 +29,7 @@ PREFIX = '[psa]'
 KEY_TIME = 'Aktualisierung'
 
 TS_FORMATS = [
+    'Stand: %d. %B %Y',
     'Stand: %d. %B %Y; %H Uhr',
     'Stand: %d. %B %Y; %H.%M Uhr',
 ]
