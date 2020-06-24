@@ -32,6 +32,8 @@ TS_FORMATS = [
     'Stand: %d. %B %Y',
     'Stand: %d. %B %Y; %H Uhr',
     'Stand: %d. %B %Y; %H.%M Uhr',
+    'Stand: %d. %B %Y, %H Uhr',
+    'Stand: %d. %B %Y, %H.%M Uhr',
 ]
 
 LOC_LUT = {
@@ -55,7 +57,7 @@ class CovidSection(StaticSection):
 def update_check(ts_old, update_raw):
     locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
     soup = BeautifulSoup(update_raw, 'html.parser')
-    ts_str = soup.find('h1', 'SP-Headline--paragraph').text
+    ts_str = soup.find('h3', 'SP-Headline--paragraph').text
     ts_new = None
     for ts_format in TS_FORMATS:
         try:
