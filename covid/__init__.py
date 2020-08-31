@@ -42,7 +42,7 @@ LOC_LUT = {
 }
 
 REPR_LUT = {
-    'Gemeldete Fälle insgesamt': 'insgesamt',
+    'Fälle insgesamt': 'insgesamt',
     'Genesene': 'genesen',
     'Aktuell Infizierte': 'infiziert',
     'Todesfälle': 'tot',
@@ -71,7 +71,7 @@ def update_check(ts_old, update_raw):
         update_required = False
     if int(ts_old) < int(ts_new):
         update_required = True
-    data_cases = pd.read_html(str(soup.table))[0].set_index('Vorkommen')
+    data_cases = pd.read_html(str(soup.table))[0].set_index('Ort')
     return update_required, ts_new, data_cases
 
 
