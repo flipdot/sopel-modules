@@ -34,6 +34,7 @@ TS_FORMATS = [
     'Stand: %d. %B %Y; %H.%M Uhr',
     'Stand: %d. %B %Y, %H Uhr',
     'Stand: %d. %B %Y, %H.%M Uhr',
+    'Stand: %A, %d. %B %Y, %H.%M Uhr',
 ]
 
 LOC_LUT = {
