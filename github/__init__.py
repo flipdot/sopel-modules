@@ -58,6 +58,8 @@ IGNORED_KEYWORDS = {
     'Docker tag',
     'renovate',
     'yarn: Upgrade',
+    'chore(deps):',
+    'chore(yarn):',
 }
 
 IGNORED_NICK_PARTS = {
