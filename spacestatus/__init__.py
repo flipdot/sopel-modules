@@ -25,7 +25,7 @@ def update_space_status() -> Mapping:
 
     try:
         r = requests.get('https://api.flipdot.org', timeout=5)
-        if r.status_code == 200 and r.json().get('api', '0') == '0.13':
+        if r.status_code == 200 and r.json().get('api', '0') == '0.14':
             return r.json()
         else:
             return space_status
